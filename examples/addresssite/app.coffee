@@ -1,3 +1,4 @@
+models = require 'expressway/models'
 ew = require '../..'
 
 app = module.exports = ew.createServer()
