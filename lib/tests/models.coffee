@@ -65,3 +65,33 @@ Baz.find({foo: 'fooo'}, (err, bazes) ->
 
 baz.should.respondTo('foobar')
 baz.foobar('biz').should.eql('fooobiz123')
+
+###
+# Test default primary key
+###
+
+baz.should.have.property('pk', baz._id)
+
+###
+# Test custom primary key
+###
+
+Braz = new models.Base(
+    name: 'braz'
+    pk: 'slug'
+    fields: 
+        slug:
+            type: String
+)
+braz = Braz.create(
+    slug: 'doo'
+)
+braz.should.have.property('pk', braz.slug)
+
+###
+# Test change primary key
+###
+
+braz.slug = 'dar' 
+braz.should.have.property('pk', braz.slug)
+

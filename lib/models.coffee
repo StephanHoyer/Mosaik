@@ -6,9 +6,9 @@ module.exports.Base = class Base
     constructor: (@configuration) ->
         @Model = mongoose.model(@configuration.name, new mongoose.Schema(@configuration.fields))
         @Model::[name] = method for name, method of @configuration.methods
+        @Model::__defineGetter__('pk', () -> @[configuration.pk or '_id'])
     create: (data) =>
-        new @Model(data)
-
+        instance = new @Model(data)
     ###
     # @TODO
     #
