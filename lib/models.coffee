@@ -5,6 +5,7 @@ mongoose.connect('mongodb://localhost/testexpressway');
 module.exports.Base = class Base
     constructor: (@configuration) ->
         @Model = mongoose.model(@configuration.name, new mongoose.Schema(@configuration.fields))
+        @Model::[name] = method for name, method of @configuration.methods
     create: (data) =>
         new @Model(data)
 

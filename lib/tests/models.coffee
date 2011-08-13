@@ -14,6 +14,8 @@ Baz = new models.Base(
             type: String
         bar:
             type: Number
+    methods:
+        foobar: (inter) -> @foo + inter + @bar
 )
 Baz.should.respondTo('create')
 
@@ -56,3 +58,10 @@ Baz.find({foo: 'fooo'}, (err, bazes) ->
     bazes.should.have.property('length')
     bazes.length.should.be.above(0)
 )
+
+###
+# Test embeded methods
+###
+
+baz.should.respondTo('foobar')
+baz.foobar('biz').should.eql('fooobiz123')
