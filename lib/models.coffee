@@ -6,9 +6,18 @@ module.exports.Base = class Base
     constructor: (@configuration) ->
         @Model = mongoose.model(@configuration.name, new mongoose.Schema(@configuration.fields))
         @Model::[name] = method for name, method of @configuration.methods
-        @Model::__defineGetter__('pk', () -> @[configuration.pk or '_id'])
+        @Model::__defineGetter__('class', () => @)
+        @pkField = configuration.pk or '_id' 
+        @Model::__defineGetter__('pk', () -> @[@class.pkField])
+
     create: (data) =>
         instance = new @Model(data)
+
+    findByPk: (value, cb) =>
+        throw new Error('no value given') if not value
+        query = {}
+        query[@pkField] = value
+        @findOne(query, cb)
     ###
     # @TODO
     #

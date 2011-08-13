@@ -95,3 +95,20 @@ braz.should.have.property('pk', braz.slug)
 braz.slug = 'dar' 
 braz.should.have.property('pk', braz.slug)
 
+###
+# Test find by pk
+###
+Baz.should.respondTo('findByPk')
+Baz.findOne({}, (err, baz) ->
+    Baz.findByPk(baz.pk, (err, foundBaz) -> 
+        should.not.exist(err)
+        should.exist(foundBaz)
+        foundBaz.pk.should.eql(baz.pk)
+    )
+)
+
+
+###
+# Cleanup
+###
+baz.remove()
