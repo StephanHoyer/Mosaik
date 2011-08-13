@@ -1,28 +1,26 @@
 mongoose = require 'mongoose'
-Schema   = mongoose.Schema
 
-mongoose.connect('mongodb://localhost/company');
+mongoose.connect('mongodb://localhost/testexpressway');
 
 module.exports.Base = class Base
     constructor: (@configuration) ->
-        @Model = mongoose.model(@configuration.name, new Schema(@configuration.fields))
-    create: (data) ->
+        @Model = mongoose.model(@configuration.name, new mongoose.Schema(@configuration.fields))
+    create: (data) =>
         new @Model(data)
-###
-module.exports.create = (configuration) =>
-    #model.
 
-var User = mongoose.model('User', new Schema({
-    name: { type: String, validate: [function(v, cb) {
-        if ('' == v) {
-            cb(false);
-            return;
-        }
-        User.findOne({name: v}, function(err, user) {
-            if (err) { cb(true); }
-            user ? cb(false) : cb(true);
-        });
-    }, 'User already exists!']},
-    password: { type: String, required: true, set: encrypt }
-}));    
-###
+    ###
+    # @TODO
+    #
+    # Tried to inject all methods of @Model to this, but i didn't get it
+    # Here is, what i come up with:
+    #
+    # for name, method of @Model
+    #     if typeof method is 'function'
+    #         Base::[name] = @Model[name]
+    #
+    # But it does not work. So i hardcoded some functions
+    ###
+    findOne: (args...) =>
+        @Model.findOne(args...)
+    find: (args...) =>
+        @Model.find(args...)
