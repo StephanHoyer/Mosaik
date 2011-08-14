@@ -11,35 +11,26 @@ module.exports.Base = class Base
         @Model::__defineGetter__('class', () => @)
         @pkField = configuration.pk or '_id' 
         @Model::__defineGetter__('pk', () -> @[@class.pkField])
+        # Add findByAttribute methods
         for key of configuration.fields
-            scopedKey = 'foo'
             ((key) =>
                 @['findBy' + key.capitalize()] = (value, cb) => 
                     query = {}
                     query[key] = value
                     @find(query, cb)
             )(key)
+        # Inject some of Models functions to Base
+        for name, method of @Model
+            if  name in ['find', 'findOne', 'findById'] and not Base::[name] 
+                ((name, method, model) ->
+                    Base::[name] = (args...) ->
+                        method.apply(model, args)
+                )(name, method, @Model)
     create: (data) =>
-        instance = new @Model(data)
+        new @Model(data)
 
     findByPk: (value, cb) =>
         throw new Error('no value given') if not value
         query = {}
         query[@pkField] = value
         @findOne(query, cb)
-    ###
-    # @TODO
-    #
-    # Tried to inject all methods of @Model to this, but i didn't get it
-    # Here is, what i come up with:
-    #
-    # for name, method of @Model
-    #     if typeof method is 'function'
-    #         Base::[name] = @Model[name]
-    #
-    # But it does not work. So i hardcoded some functions
-    ###
-    findOne: (args...) =>
-        @Model.findOne(args...)
-    find: (args...) =>
-        @Model.find(args...)

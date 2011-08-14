@@ -86,6 +86,7 @@ Braz = new models.Base(
 braz = Braz.create(
     slug: 'doo'
 )
+should.exist(braz)
 braz.should.have.property('pk', braz.slug)
 
 ###
@@ -94,6 +95,18 @@ braz.should.have.property('pk', braz.slug)
 
 braz.slug = 'dar' 
 braz.should.have.property('pk', braz.slug)
+
+###
+# Test find by id
+###
+Baz.should.respondTo('findById')
+Baz.findOne({}, (err, baz) ->
+    Baz.findById(baz._id, (err, foundBaz) -> 
+        should.not.exist(err)
+        should.exist(foundBaz)
+        foundBaz._id.should.eql(baz._id)
+    )
+)
 
 ###
 # Test find by pk
