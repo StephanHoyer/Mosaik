@@ -1,5 +1,7 @@
 mongoose = require 'mongoose'
 
+require('./util').capitalize()
+
 mongoose.connect('mongodb://localhost/testexpressway');
 
 module.exports.Base = class Base
@@ -9,7 +11,14 @@ module.exports.Base = class Base
         @Model::__defineGetter__('class', () => @)
         @pkField = configuration.pk or '_id' 
         @Model::__defineGetter__('pk', () -> @[@class.pkField])
-
+        for key of configuration.fields
+            scopedKey = 'foo'
+            ((key) =>
+                @['findBy' + key.capitalize()] = (value, cb) => 
+                    query = {}
+                    query[key] = value
+                    @find(query, cb)
+            )(key)
     create: (data) =>
         instance = new @Model(data)
 

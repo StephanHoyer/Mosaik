@@ -107,6 +107,36 @@ Baz.findOne({}, (err, baz) ->
     )
 )
 
+###
+# Test non-interference beween models
+###
+
+One = new models.Base(
+    name: 'One'
+    fields:
+        one: String
+)
+
+Two = new models.Base(
+    name: 'Two'
+    fields:
+        two: String
+)
+One.configuration.fields.should.have.property('one')
+One.configuration.fields.should.not.have.property('two')
+Two.configuration.fields.should.have.property('two')
+Two.configuration.fields.should.not.have.property('one')
+
+###
+# Test find by attribute
+###
+
+Baz.should.respondTo('findByFoo')
+Baz.findByFoo('fooo', (err, fooBazes) ->
+    fooBazes.should.have.property('length')
+    fooBazes.length.should.be.above(0)
+    fooBazes[0].should.have.property('foo', 'fooo')
+)
 
 ###
 # Cleanup
