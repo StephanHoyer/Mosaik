@@ -32,4 +32,4 @@ exception.should.eql(
     type: 'foo'
 )
 
-
+("" +exception).should.eql("Exception of type 'foo' with code 123: wrong foo")
