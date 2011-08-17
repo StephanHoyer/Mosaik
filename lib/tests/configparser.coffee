@@ -93,8 +93,61 @@ config.validate(
                     types: ['GET', 'PUT', 'POST', 'DELETE']
 ).should.be.ok
 
-process.exit(1)
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw1':
+                    method: 123
+)), 'Method of type number must not be possible')
+
+config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw2':
+                    method: (req, res) -> null 
+).should.be.ok
+
+config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw2':
+                    method: (req, res) -> null 
+                    depends: ['a', 'b']
+).should.be.ok
+
+config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw2':
+                    method: (req, res) -> null 
+                    depends: 'mv1'
+).should.be.ok
+
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw2':
+                    depends: 'mv1'
+)), 'Middleware has to have at least a method-node')
+
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw1':
+                    depends: 123
+                    method: () -> null
+)), 'depends must not be of type other than string or array of strings')
 ###
+should.throw((-> config.validate(
+)), 'Middleware method must be a string')
+
+process.exit(1)
 config.should.respondTo('merge')
 config.merge({}).should.eql(config)
 
