@@ -113,6 +113,16 @@ config.validate(
     childs: 
         'route1':
             middlewares: 
+                'mw1':
+                    method: (req, res) -> null 
+                'mw2':
+                    method: (req, res) -> null 
+).should.be.ok
+
+config.validate(
+    childs: 
+        'route1':
+            middlewares: 
                 'mw2':
                     method: (req, res) -> null 
                     depends: ['a', 'b']
@@ -143,6 +153,44 @@ should.throw((-> config.validate(
                     depends: 123
                     method: () -> null
 )), 'depends must not be of type other than string or array of strings')
+
+config.validate(
+    childs: 
+        'route1':
+            method: () -> null
+).should.be.ok
+
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            method: 123
+)), 'Block method must not be of type other than function')
+
+config.validate(
+    childs: 
+        'route1':
+            extends: 'foo'
+).should.be.ok
+
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            extends: 123
+)), 'Block extends must be of type string')
+
+config.validate(
+    childs: 
+        'route1':
+            sortorder: 123 
+).should.be.ok
+
+should.throw((-> config.validate(
+    childs: 
+        'route1':
+            sortorder: 'foo'
+)), 'Block sortorder must be of type number')
+
+#
 ###
 should.throw((-> config.validate(
 )), 'Middleware method must be a string')

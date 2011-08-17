@@ -34,6 +34,16 @@ module.exports.Config = class Config
                                 value,
                                 "Middleware '#{name}': Method '#{value}' should be of type Function but is of type '#{typeof value}'"
                             )
+                        when 'extends'
+                                @validateString(
+                                    value,
+                                    "Block '#{name}': Block name to extend '#{value}' should be of type String but is of type '#{typeof value}'"
+                                )
+                        when 'sortorder'
+                                @validateNumber(
+                                    value,
+                                    "Block '#{name}': Block sortorder '#{value}' should be of type Number but is of type '#{typeof value}'"
+                                )
                         else
                             throw new Error("Block '#{name}': Unknown router key '#{key}'")
             else 
@@ -59,10 +69,11 @@ module.exports.Config = class Config
                 else 
                     throw new Error("Middleware '#{name}': Unknown config key '#{key}'")
 
+    validateNumber: (value, message) ->
+        throw new Error(message) if typeof value isnt 'number'
+    
     validateString: (value, message) ->
         throw new Error(message) if typeof value isnt 'string'
 
     validateFunction: (value, message) ->
         throw new Error(message) if typeof value isnt 'function'
-
-
