@@ -8,6 +8,11 @@ config.should.eql(
     config: {}
 )
 config.should.respondTo('validate')
+
+###
+# Test validation
+###
+
 config.validate({}).should.be.ok
 should.throw(-> config.validate(foo: 'bar'))
 
@@ -190,17 +195,58 @@ should.throw((-> config.validate(
             sortorder: 'foo'
 )), 'Block sortorder must be of type number')
 
-#
 ###
-should.throw((-> config.validate(
-)), 'Middleware method must be a string')
+# Test recursive merge
+###
 
-process.exit(1)
-config.should.respondTo('merge')
-config.merge({}).should.eql(config)
+config.recursiveMerge({},{}).should.eql({})
+config.recursiveMerge({}, {a:1}).should.eql({a:1})
+config.recursiveMerge({a:1},{a:1}).should.eql({a:1})
+config.recursiveMerge({a:1},{a:2}).should.eql({a:2})
+config.recursiveMerge({a:1},{b:1}).should.eql({a:1,b:1})
+config.recursiveMerge({a:1},{b:{a:2}}).should.eql({a:1,b:{a:2}})
+config.recursiveMerge({b:{a:2}},{b:{a:{c:3}}}).should.eql({b:{a:{c:3}}})
+config.recursiveMerge({}, {a:()->null}).toString().should.eql({a:()->null}.toString())
+obj = {}
+config.recursiveMerge(obj, {a:1})
+obj.should.eql({a:1})
 
+###
+# Test config merge
+###
+
+config.merge(
+    childs: 
+        'route1':
+            sortorder: 123 
+).should.eql(
     config:
         childs: 
             'route1':
-                routes: []
+                sortorder: 123 
 )
+
+config.merge(
+    childs: 
+        'route1':
+            sortorder: 1234
+).should.eql(
+    config:
+        childs: 
+            'route1':
+                sortorder: 1234
+)
+
+config.merge(
+    childs: 
+        'route1':
+            method: () -> null
+).toString().should.eql({
+    config:
+        childs: 
+            'route1':
+                sortorder: 1234
+                method: () -> null
+    }.toString()
+)
+

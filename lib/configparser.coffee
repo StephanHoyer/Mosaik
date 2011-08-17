@@ -2,12 +2,18 @@ module.exports.Config = class Config
     constructor: (@config={}) ->
 
     merge: (config={}) ->
-        
-        if config.router
-            for key, value in config.router
-                console.log(key)
-                @config.router.key = value
+        @validate(config)
+        @recursiveMerge(@config, config) 
+        @validate(@config)
         @
+
+    recursiveMerge: (obj1, obj2) ->
+        for key, value of obj2
+           if obj1[key] and typeof obj1[key] is 'object' and typeof value is 'object'
+               obj1[key] = @recursiveMerge(obj1[key], value)
+           obj1[key] = value
+        obj1
+        
     validate: (config={}, type='base', name='ROOT') ->
         switch type
             when 'base'
