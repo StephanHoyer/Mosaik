@@ -1,5 +1,7 @@
 module.exports.Config = class Config
     constructor: (@config={}) ->
+        @routes = {} 
+        @middlewares = {}
 
     merge: (config={}) ->
         @validate(config)
@@ -9,10 +11,24 @@ module.exports.Config = class Config
 
     recursiveMerge: (obj1, obj2) ->
         for key, value of obj2
-           if obj1[key] and typeof obj1[key] is 'object' and typeof value is 'object'
-               obj1[key] = @recursiveMerge(obj1[key], value)
-           obj1[key] = value
+            if key in ['routes', 'depends']
+                obj1[key] = @arrayfy(obj1[key]).concat(@arrayfy(value))
+            else
+                if obj1[key] and typeof obj1[key] is 'object' and typeof value is 'object'
+                    obj1[key] = @recursiveMerge(obj1[key], value)
+                else
+                    obj1[key] = value
+            @collectRoutes(value) if key is 'childs'
         obj1
+    
+    arrayfy: (value) ->
+        return [] unless value
+        return [value] unless value instanceof Array
+        value
+
+    collectRoutes: (childs) ->
+        for key, value of childs
+            null
         
     validate: (config={}, type='base', name='ROOT') ->
         switch type

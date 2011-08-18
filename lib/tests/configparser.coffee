@@ -4,13 +4,11 @@ should.throw = should.throws
 
 parser.should.respondTo('Config')
 config = new parser.Config()
-config.should.eql(
-    config: {}
-)
+config.config.should.eql({})
 config.should.respondTo('validate')
 
 ###
-# Test validation
+# Test syntactic validation
 ###
 
 config.validate({}).should.be.ok
@@ -207,6 +205,14 @@ config.recursiveMerge({a:1},{b:1}).should.eql({a:1,b:1})
 config.recursiveMerge({a:1},{b:{a:2}}).should.eql({a:1,b:{a:2}})
 config.recursiveMerge({b:{a:2}},{b:{a:{c:3}}}).should.eql({b:{a:{c:3}}})
 config.recursiveMerge({}, {a:()->null}).toString().should.eql({a:()->null}.toString())
+config.should.respondTo('arrayfy')
+config.arrayfy('foo').should.eql(['foo'])
+config.arrayfy(undefined).should.eql([])
+config.arrayfy(123).should.eql([123])
+config.arrayfy([123]).should.eql([123])
+config.recursiveMerge({routes: 'foo'}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
+config.recursiveMerge({routes: ['foo']}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
+config.recursiveMerge({routes: ['foo']}, {routes: ['bar']}).should.eql({routes: ['foo', 'bar']})
 obj = {}
 config.recursiveMerge(obj, {a:1})
 obj.should.eql({a:1})
@@ -219,34 +225,74 @@ config.merge(
     childs: 
         'route1':
             sortorder: 123 
-).should.eql(
-    config:
-        childs: 
-            'route1':
-                sortorder: 123 
+).config.should.eql(
+    childs: 
+        'route1':
+            sortorder: 123 
 )
 
 config.merge(
     childs: 
         'route1':
             sortorder: 1234
-).should.eql(
-    config:
-        childs: 
-            'route1':
-                sortorder: 1234
-)
+).config.should.eql(
+    childs: 
+        'route1':
+            sortorder: 1234
+, )
 
 config.merge(
     childs: 
         'route1':
             method: () -> null
-).toString().should.eql({
-    config:
-        childs: 
-            'route1':
-                sortorder: 1234
-                method: () -> null
+).config.toString().should.eql({
+    childs: 
+        'route1':
+            sortorder: 1234
+            method: () -> null
     }.toString()
+, 'Method should be merged to existing node')
+
+###
+# test routes tracking
+###
+
+config = new parser.Config()
+
+config.merge(
+    childs: 
+        'block1':
+            routes: 'foo'
 )
+console.log(config)
+config.routes.should.eql([
+    'block1': 'foo'
+])
+
+        
+
+
+
+###
+# test sematic validation
+###
+
+config = new parser.Config()
+
+config.merge(
+    childs: 
+        'route1':
+            middlewares:
+                'mv1':
+                    method: () -> null
+).should.be.ok
+
+should.throw((-> config.merge(
+    childs: 
+        'route1':
+            middlewares:
+                'mv1':
+                    method: () -> null
+                    depends: 'mv1'
+)), 'Middleware can\'t be selfdepending')
 
