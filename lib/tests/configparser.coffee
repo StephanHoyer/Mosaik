@@ -204,11 +204,25 @@ config.recursiveMerge({a:1},{a:2}).should.eql({a:2})
 config.recursiveMerge({a:1},{b:1}).should.eql({a:1,b:1})
 config.recursiveMerge({a:1},{b:{a:2}}).should.eql({a:1,b:{a:2}})
 config.recursiveMerge({b:{a:2}},{b:{a:{c:3}}}).should.eql({b:{a:{c:3}}})
-config.recursiveMerge({}, {a:()->null}).toString().should.eql({a:()->null}.toString())
+func = ()->null
+should.deepEqual(config.recursiveMerge({}, {a:func}),{a:func})
 config.recursiveMerge({routes: 'foo'}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
 config.recursiveMerge({routes: ['foo']}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
 config.recursiveMerge({routes: ['foo']}, {routes: ['bar']}).should.eql({routes: ['foo', 'bar']})
 config.recursiveMerge({routes: ['foo']}, {routes: ['foo']}).should.eql({routes: ['foo']})
+should.deepEqual(
+    config.recursiveMerge(
+        {
+            dependsTest: 
+                depends: ['foo']
+        },{
+            dependsTest:
+                depends: 'bar'
+        }
+    ),
+    dependsTest:
+        depends: ['foo', 'bar']
+)
 obj = {}
 config.recursiveMerge(obj, {a:1})
 obj.should.eql({a:1})
@@ -237,17 +251,21 @@ config.merge(
             sortorder: 1234
 , )
 
-config.merge(
-    childs: 
-        'route1':
-            method: () -> null
-).config.toString().should.eql({
+func = () -> null
+should.deepEqual(
+    config.merge(
+        childs: 
+            'route1':
+                method: func 
+    ).config, 
+    {
     childs: 
         'route1':
             sortorder: 1234
-            method: () -> null
-    }.toString()
-, 'Method should be merged to existing node')
+            method: func
+    },
+    'Method should be merged to existing node'
+)
 
 ###
 # test routes tracking
@@ -261,8 +279,125 @@ config.merge(
             routes: 'foo'
 )
 config.routes.should.eql(
+    'block1': ['foo'],
+    'Merge to empty config should generate one route'
+)
+config.merge(
+    childs: 
+        'block1':
+            routes: 'foo'
+)
+
+config.routes.should.eql(
+    'block1': ['foo'],
+    'Merge same route again should change nothing'
+)
+
+config.merge(
+    childs: 
+        'block2':
+            routes: 'foo'
+)
+config.routes.should.eql(
     'block1': ['foo']
-, 'Merge to empty config should generate one route')
+    'block2': ['foo'],
+    'Merge of new block should add new routes entry'
+)
+
+config.merge(
+    childs: 
+        'block2':
+            routes: 'bar'
+)
+config.routes.should.eql(
+    'block1': ['foo']
+    'block2': ['foo', 'bar'],
+    'Merge of new route should add new entry to existing route entry'
+)
+
+###
+# test routes tracking
+###
+
+config = new parser.Config()
+func = () -> null
+config.merge(
+    childs: 
+        'block1':
+            middlewares:
+                'foo':
+                    method: func
+                    depends:
+                        'bar'
+)
+should.deepEqual(
+    config.middlewares,
+    'block1':
+        'foo': 
+            method: func
+            depends: 'bar'
+    ,
+    'Merge to empty config should generate one middelware'
+)
+
+config.merge(
+    childs: 
+        'block1':
+            middlewares:
+                'foo':
+                    method: func
+                    depends: ['bar', 'foo']
+)
+should.deepEqual(
+    config.middlewares,
+    'block1':
+        'foo': 
+            method: func
+            depends: ['bar', 'foo']
+    ,
+    'Add dependency to middleware should also be added to middleware collection'
+)
+
+config.merge(
+    childs: 
+        'block1':
+            middlewares:
+                'foo':
+                    method: func
+                    depends: 'baz'
+)
+should.deepEqual(
+    config.middlewares,
+    'block1':
+        'foo': 
+            method: func
+            depends: ['bar', 'foo', 'baz']
+    , 
+    'Add single dependency to middleware should merge to existing middleware dependencies'
+)
+
+config.merge(
+    childs: 
+        'block2':
+            middlewares:
+                'foo':
+                    method: func
+                    depends: ['bar', 'foo']
+)
+should.deepEqual(
+    config.middlewares,
+    'block1':
+        'foo': 
+            method: func
+            depends: ['bar', 'foo', 'baz']
+    'block2':
+        'foo': 
+            method: func
+            depends: ['bar', 'foo']
+    , 
+    'Add new block should also be added to middleware collection'
+)
+
 config.merge(
     childs: 
         'block1':
@@ -271,7 +406,29 @@ config.merge(
 
 config.routes.should.eql(
     'block1': ['foo']
-, 'Merge same route again should change nothing')
+    , 'Merge same route again should change nothing'
+)
+
+config.merge(
+    childs: 
+        'block2':
+            routes: 'foo'
+)
+config.routes.should.eql(
+    'block1': ['foo']
+    'block2': ['foo']
+    , 'Merge of new block should add new routes entry'
+)
+
+config.merge(
+    childs: 
+        'block2':
+            routes: 'bar'
+)
+config.routes.should.eql(
+    'block1': ['foo']
+    'block2': ['foo', 'bar']
+, 'Merge of new route should add new entry to existing route entry')
 
 ###
 # test sematic validation

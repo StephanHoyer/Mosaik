@@ -9,6 +9,7 @@ module.exports.Config = class Config
         @validate(config)
         @recursiveMerge(@config, config) 
         @validate(@config)
+        @collectRoutesAndMiddlewares()
         @
 
     recursiveMerge: (obj1, obj2) ->
@@ -21,12 +22,19 @@ module.exports.Config = class Config
                     obj1[key] = @recursiveMerge(obj1[key], value)
                 else
                     obj1[key] = value
-            @collectRoutes(obj1[key]) if key is 'childs'
         obj1
     
-    collectRoutes: (childs) ->
-        for key, value of childs when value.routes
-            @routes[key] = arrayfy(value.routes)
+    collectRoutesAndMiddlewares: (obj=@config, parentName='ROOT') ->
+        if obj instanceof Object  
+            for key, value of obj
+                if parentName is 'childs' and value.routes
+                    @routes[key] = arrayfy(value.routes)
+                else if key is 'middlewares'
+                    for key, middleware of value
+                        @middlewares[parentName] = {} unless @middlewares[parentName]
+                        @middlewares[parentName][key] = middleware
+                else
+                    @collectRoutesAndMiddlewares(value, key)
         
     validate: (config={}, type='base', name='ROOT') ->
         switch type
