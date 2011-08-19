@@ -137,7 +137,7 @@ config.validate(
             middlewares: 
                 'mw2':
                     method: (req, res) -> null 
-                    depends: 'mv1'
+                    depends: 'mw1'
 ).should.be.ok
 
 should.throw((-> config.validate(
@@ -145,7 +145,7 @@ should.throw((-> config.validate(
         'route1':
             middlewares: 
                 'mw2':
-                    depends: 'mv1'
+                    depends: 'mw1'
 )), 'Middleware has to have at least a method-node')
 
 should.throw((-> config.validate(
@@ -316,7 +316,7 @@ config.routes.should.eql(
 )
 
 ###
-# test routes tracking
+# test middleware tracking
 ###
 
 config = new parser.Config()
@@ -325,6 +325,8 @@ config.merge(
     childs: 
         'block1':
             middlewares:
+                'bar':
+                    method: func
                 'foo':
                     method: func
                     depends:
@@ -332,10 +334,12 @@ config.merge(
 )
 should.deepEqual(
     config.middlewares,
-    'block1':
-        'foo': 
-            method: func
-            depends: 'bar'
+    'bar': 
+        method: func
+        depends: []
+    'foo': 
+        method: func
+        depends: ['bar']
     ,
     'Merge to empty config should generate one middelware'
 )
@@ -346,57 +350,29 @@ config.merge(
             middlewares:
                 'foo':
                     method: func
-                    depends: ['bar', 'foo']
-)
-should.deepEqual(
-    config.middlewares,
-    'block1':
-        'foo': 
-            method: func
-            depends: ['bar', 'foo']
-    ,
-    'Add dependency to middleware should also be added to middleware collection'
-)
-
-config.merge(
-    childs: 
-        'block1':
-            middlewares:
-                'foo':
-                    method: func
                     depends: 'baz'
-)
-should.deepEqual(
-    config.middlewares,
-    'block1':
-        'foo': 
-            method: func
-            depends: ['bar', 'foo', 'baz']
-    , 
-    'Add single dependency to middleware should merge to existing middleware dependencies'
+                'baz':
+                    method: func
 )
 
-config.merge(
-    childs: 
-        'block2':
-            middlewares:
-                'foo':
-                    method: func
-                    depends: ['bar', 'foo']
-)
 should.deepEqual(
     config.middlewares,
-    'block1':
-        'foo': 
-            method: func
-            depends: ['bar', 'foo', 'baz']
-    'block2':
-        'foo': 
-            method: func
-            depends: ['bar', 'foo']
-    , 
-    'Add new block should also be added to middleware collection'
+    'bar': 
+        method: func
+        depends: []
+    'foo': 
+        method: func
+        depends: ['bar', 'baz']
+    'baz': 
+        method: func
+        depends: []
+    ,
+    'Add new dependency to middleware should also be added to middleware collection'
 )
+
+###
+# test routes tracking
+###
 
 config.merge(
     childs: 
@@ -440,16 +416,56 @@ config.merge(
     childs: 
         'route1':
             middlewares:
-                'mv1':
+                'mw1':
                     method: () -> null
+                'mw2':
+                    method: () -> null
+                    depends: 'mw1'
 ).should.be.ok
 
 should.throw((-> config.merge(
     childs: 
         'route1':
             middlewares:
-                'mv1':
+                'mw1':
                     method: () -> null
-                    depends: 'mv1'
+                    depends: 'mw1'
 )), 'Middleware can\'t be selfdepending')
+
+should.throw((-> config.merge(
+    childs: 
+        'route1':
+            middlewares:
+                'mw3':
+                    method: () -> null
+                    depends: 'mw2'
+                'mw2':
+                    method: () -> null
+                    depends: 'mw1'
+                'mw1':
+                    method: () -> null
+                    depends: 'mw3'
+)), 'Cirlce dependency detected')
+
+should.throw((-> config.merge(
+    childs: 
+        'route1':
+            middlewares:
+                'mw2':
+                    method: () -> null
+                    depends: 'mw1'
+                'mw1':
+                    method: () -> null
+                    depends: 'mw2'
+)), 'Cirlce dependency detected')
+
+should.throw((-> config.merge(
+    childs: 
+        'route1':
+            middlewares:
+                'mw1':
+                    method: () -> null
+                    depends: 'mw2'
+)), 'Middleware can\'t depend on unexisting middleware')
+
 
