@@ -29,14 +29,14 @@ renderObject = (req, res) ->
 # res: Response object with some additional data
 #   res.forward(url/blockname) method to forward request
 #   res.redirect(url/blockname) method to redirect request
-# next(): method to finish this middleware and continue with next middleware
-# nextRoute(): method to stop rendering an continue with next matching route
+# done(): method to finish this middleware and continue with next middleware
+# done(): method to stop rendering an continue with next matching route
 ###
-loadFromDb = (req, res, next, nextRoute) ->
+loadFromDb = (req, res, done, next) ->
     db.loadSomethigById(req.id, (err, something) ->
-        nextRoute() if err
+        done() if err
         req.object = something
-        next()
+        done()
     )
 
 module.exports.config = 
@@ -62,14 +62,14 @@ route: helloWorld
 # Example with middlewaredepencies
 ################################################
 
-checkLoginState = (req, res, next, nextRoute) ->
-    next() if isAllowed(req.session.user)
+checkLoginState = (req, res, done, next) ->
+    done() if isAllowed(req.session.user)
     req.session.back = req.route
     res.redirect('login')
-checkLogin = (req, res, next, nextRoute) ->
-    next() if req.type is 'GET'
+checkLogin = (req, res, done, next) ->
+    done() if req.type is 'GET'
     db.checkUser(req.data.username, req.data.password, (err, user) ->
-        next() if err
+        done() if err
         req.session.user = user
         res.redirect(req.session.back)
 
