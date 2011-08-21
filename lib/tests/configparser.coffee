@@ -1,9 +1,8 @@
 should = require 'should'
-parser = require '../configparser'
+Config = require '../configparser'
 should.throw = should.throws
 
-parser.should.respondTo('Config')
-config = new parser.Config()
+config = new Config()
 config.config.should.eql({})
 config.should.respondTo('validate')
 
@@ -271,7 +270,7 @@ should.deepEqual(
 # test routes tracking
 ###
 
-config = new parser.Config()
+config = new Config()
 
 config.merge(
     childs: 
@@ -319,7 +318,7 @@ config.routes.should.eql(
 # test middleware tracking
 ###
 
-config = new parser.Config()
+config = new Config()
 func = () -> null
 config.merge(
     childs: 
@@ -410,7 +409,7 @@ config.routes.should.eql(
 # test sematic validation
 ###
 
-config = new parser.Config()
+config = new Config()
 
 config.merge(
     childs: 

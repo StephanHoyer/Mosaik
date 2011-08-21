@@ -1,7 +1,7 @@
 arrayfy = require('./util').arrayfy
 require('./util').ArrayUnique()
 
-module.exports.Config = class Config
+module.exports = class Config
     constructor: (@config={}) ->
         @routes = {} 
         @middlewares = {}
