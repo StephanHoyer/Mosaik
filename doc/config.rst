@@ -100,4 +100,70 @@ middleware can be found at the middleware section.
 Child blocks
 ~~~~~~~~~~~~
 
+HTML is tree based. Most Layouts are also tree based. A common layout of a website might be this
+page/
+  html-head
+  header/
+    logo
+    menu
+    searchfield
+    login
+  left-sidebar/
+    submenu
+    callout
+  main/
+    blogposts
+    comments-section/
+        form
+        comments
+  footer/
+    linklist
+    static content
 
+Most frameworks are realy good in displaying the main part of the page. For the other parts they often use some quirks
+with template extensions or extra modules to display them. But why tread then non-main-content different form the main
+content. Mosik has a great build in solution for this problem, borrowed from the Magento layout system.
+
+Lets extend our Hello-World-Example by a nice "Hello World" headline. Of cause you do this with a template, but for
+demonstration purposes we will create a seperate block for this.
+
+::
+    module.exports.config = 
+        childs:
+            'main'
+                route: /.*/
+                childs:
+                    'header':
+                        method: () -> '<h1>Hello World</h1>'
+                    'helloWorld':
+                        method: () -> 'Hello World'
+
+We generated two more blocks, one which wraps the existing and the other new block in a "requestable" block and the other
+which contains the headline. A "requestable" block, what's that? you might think. Look at the following extendet version
+of the configuration:
+
+::
+    module.exports.config = 
+        childs:
+            'main'
+                route: ''
+                childs:
+                    'header':
+                        route: 'head'
+                        method: () -> '<h1>Hello World</h1>'
+                    'helloWorld':
+                        method: () -> 'Hello World'
+                        route: 'body'
+
+We changed the basic route and added two new routes, one for every subblock. Now we have three routes to request for:
+
+#. http://example.org/ results in showing both the header and the body part
+#. http://example.org/head results in showing only the header part
+#. http://example.org/body results in showing only the body part
+
+This can be really usefull in serveral cases. One of you might think is in combination with AJAX. Another one is related
+to a technique called Edge Side Includes. It is used by reverse proxies like Varnish to improve site performance.
+
+
+
+    
