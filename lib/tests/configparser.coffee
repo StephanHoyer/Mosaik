@@ -276,7 +276,7 @@ config.merge(
     childs: 
         'block1':
             routes: 'foo'
-)
+).compile()
 config.routes.should.eql(
     'block1': ['foo'],
     'Merge to empty config should generate one route'
@@ -285,7 +285,7 @@ config.merge(
     childs: 
         'block1':
             routes: 'foo'
-)
+).compile()
 
 config.routes.should.eql(
     'block1': ['foo'],
@@ -296,7 +296,7 @@ config.merge(
     childs: 
         'block2':
             routes: 'foo'
-)
+).compile()
 config.routes.should.eql(
     'block1': ['foo']
     'block2': ['foo'],
@@ -307,7 +307,7 @@ config.merge(
     childs: 
         'block2':
             routes: 'bar'
-)
+).compile()
 config.routes.should.eql(
     'block1': ['foo']
     'block2': ['foo', 'bar'],
@@ -330,7 +330,7 @@ config.merge(
                     method: func
                     depends:
                         'bar'
-)
+).compile()
 should.deepEqual(
     config.middlewares,
     'bar': 
@@ -352,7 +352,7 @@ config.merge(
                     depends: 'baz'
                 'baz':
                     method: func
-)
+).compile()
 
 should.deepEqual(
     config.middlewares,
@@ -377,7 +377,7 @@ config.merge(
     childs: 
         'block1':
             routes: 'foo'
-)
+).compile()
 
 config.routes.should.eql(
     'block1': ['foo']
@@ -388,7 +388,7 @@ config.merge(
     childs: 
         'block2':
             routes: 'foo'
-)
+).compile()
 config.routes.should.eql(
     'block1': ['foo']
     'block2': ['foo']
@@ -399,7 +399,7 @@ config.merge(
     childs: 
         'block2':
             routes: 'bar'
-)
+).compile()
 config.routes.should.eql(
     'block1': ['foo']
     'block2': ['foo', 'bar']
@@ -420,7 +420,7 @@ config.merge(
                 'mw2':
                     method: () -> null
                     depends: 'mw1'
-).should.be.ok
+).compile().should.be.ok
 
 should.throw((-> config.merge(
     childs: 
@@ -429,7 +429,7 @@ should.throw((-> config.merge(
                 'mw1':
                     method: () -> null
                     depends: 'mw1'
-)), 'Middleware can\'t be selfdepending')
+).compile()), 'Middleware can\'t be selfdepending')
 
 should.throw((-> config.merge(
     childs: 
@@ -444,7 +444,7 @@ should.throw((-> config.merge(
                 'mw1':
                     method: () -> null
                     depends: 'mw3'
-)), 'Cirlce dependency detected')
+).compile()), 'Circle dependency detected (3 steps)')
 
 should.throw((-> config.merge(
     childs: 
@@ -456,7 +456,7 @@ should.throw((-> config.merge(
                 'mw1':
                     method: () -> null
                     depends: 'mw2'
-)), 'Cirlce dependency detected')
+).compile()), 'Circle dependency detected (2 steps)')
 
 should.throw((-> config.merge(
     childs: 
@@ -465,6 +465,138 @@ should.throw((-> config.merge(
                 'mw1':
                     method: () -> null
                     depends: 'mw2'
-)), 'Middleware can\'t depend on unexisting middleware')
+).compile()), 'Middleware can\'t depend on unexisting middleware')
+
+###
+# test dependency computation
+###
+config.should.respondTo('computeDependencies')
+
+func = -> null
+config = new Config()
+
+config.merge(
+    childs: 
+        'route1':
+            method: func
+)
+
+config.compile()
+
+should.deepEqual({
+    childs: 
+        'route1':
+            method: func
+            middlewares: {}
+}, config.config, 'No middleware should result in empty middleware object')
+
+config = new Config()
+
+config.merge(
+    childs: 
+        'route1':
+            method: func
+            middlewares:
+                'bar':
+                    method: func
+                'foo':
+                    method: func
+                    depends: 'bar'
+).compile()
+
+should.deepEqual({
+    childs: 
+        'route1':
+            method: func
+            middlewares:
+                'bar':
+                    method: func
+                'foo':
+                    method: func
+                    depends: 'bar'
+}, config.config, 'Only on level of blocks should not change anything')
+
+config = new Config()
+
+config.merge(
+    childs: 
+        'route1':
+            method: func
+            childs: 
+                'block1':
+                    method: func
+                    middlewares:
+                        'bar':
+                            method: func
+                        'foo':
+                            method: func
+                            depends: 'bar'
+).compile()
+
+should.deepEqual({
+    childs: 
+        'route1':
+            method: func
+            childs: 
+                'block1':
+                    method: func
+                    middlewares:
+                        'bar':
+                            method: func
+                        'foo':
+                            method: func
+                            depends: 'bar'
+            middlewares:
+                'bar':
+                    method: func
+                'foo':
+                    method: func
+                    depends: 'bar'
+}, config.config, 'Middleware of second level should also be pulled to first level')
+
+config = new Config()
+config.merge(
+    childs: 
+        'route1':
+            method: func
+            middlewares:
+                'baz':
+                    method: func
+                'foo':
+                    method: func
+                    depends: 'baz'
+            childs: 
+                'block1':
+                    method: func
+                    middlewares:
+                        'foo':
+                            method: func
+                            depends: 'bar'
+                        'bar':
+                            method: func
+).compile()
+
+should.deepEqual({
+    childs: 
+        'route1':
+            method: func
+            middlewares:
+                'baz':
+                    method: func
+                'foo':
+                    method: func
+                    depends: ['baz','bar']
+                'bar':
+                    method: func
+            childs: 
+                'block1':
+                    method: func
+                    middlewares:
+                        'foo':
+                            method: func
+                            depends: 'bar'
+                        'bar':
+                            method: func
+}, config.config, 'Middleware of second level should be merged to first level')
 
 

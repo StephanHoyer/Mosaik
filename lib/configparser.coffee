@@ -9,9 +9,13 @@ module.exports = class Config
     merge: (config={}) ->
         @validate(config)
         @recursiveMerge(@config, config) 
-        @collectRoutesAndMiddlewares()
-        @checkCircleMiddlewareDependencies()
+        @
+
+    compile: ->
+        @walkRecursive()
         @validate(@config, 'semantic')
+        @checkCircleMiddlewareDependencies()
+        @computeDependencies()
         @
 
     recursiveMerge: (obj1, obj2) ->
@@ -25,19 +29,33 @@ module.exports = class Config
                     obj1[key] = value
         obj1
     
-    collectRoutesAndMiddlewares: (obj=@config, parentName='ROOT') ->
+    walkRecursive: (obj=@config, path=['ROOT']) ->
         if obj instanceof Object  
             for key, value of obj
-                if parentName is 'childs' and value.routes
+                # collect routes
+                if path[0] is 'childs' and value.routes
                     @routes[key] = arrayfy(value.routes)
-                else if key is 'middlewares'
-                    for key, middleware of value
-                        @middlewares[key] = {} unless @middlewares[key]
-                        @middlewares[key].method = middleware.method
-                        @middlewares[key].depends = arrayfy(@middlewares[key].depends)
-                            .concat(arrayfy(middleware.depends)).unique()
-                else
-                    @collectRoutesAndMiddlewares(value, key)
+                # collect middlewares
+                if key is 'middlewares'
+                    @collectMiddlewares(value)
+                    continue
+                @walkRecursive(value, [key].concat(path))
+                # collect dependencies and save them to block
+                @computeDependencies(value) if path[0] is 'childs'
+
+    collectMiddlewares: (middlewares) ->
+        for key, middleware of middlewares
+            @middlewares[key] = {} unless @middlewares[key]
+            @middlewares[key].method = middleware.method
+            @middlewares[key].depends = arrayfy(@middlewares[key].depends)
+                .concat(arrayfy(middleware.depends)).unique()
+
+    computeDependencies: (obj) ->
+        return unless obj instanceof Object
+        obj.middlewares ?= {}
+        if obj.childs
+            for blockName, blockConfig of obj.childs when blockConfig.middlewares
+                obj.middlewares = @recursiveMerge(obj.middlewares, blockConfig.middlewares)
         
     validate: (config={}, type='syntactic', name='ROOT') ->
         for key, value of config
