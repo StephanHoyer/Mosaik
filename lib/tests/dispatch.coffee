@@ -136,7 +136,6 @@ func = dispatch.getDispatchFunction(
     'mw2':
         name: 'mw2'
         method: middleware.M2
-        prepares: ['mw1']
 )
 func(result, ()->
     result.data.should.eql('21')
@@ -160,10 +159,8 @@ func = dispatch.getDispatchFunction(
     'mw2':
         method: middleware.M2
         depends: ['mw3']
-        prepares: ['mw1']
     'mw3':
         method: middleware.M3
-        prepares: ['mw2']
 )
 func(result, ()->
     result.data.should.eql('321')
@@ -195,10 +192,8 @@ func = dispatch.getDispatchFunction(
         depends: ['mw2', 'mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw1']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1']
 )
 func(result, ()->
     ['321', '231'].should.contain(result.data)
@@ -217,19 +212,16 @@ main: (args) ->
             M1(args)
             M2(args)
 ###
-
 result = 
     data: ''
 func = dispatch.getDispatchFunction(
     'mw1':
         method: middleware.M1
-        prepares: ['mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw3']
     'mw3':
         method: middleware.M3
-        prepares: ['mw2', 'mw3']
+        prepares: ['mw1', 'mw2']
 )
 func(result, ()->
     ['321', '312'].should.contain(result.data)
@@ -261,20 +253,16 @@ result =
 func = dispatch.getDispatchFunction(
     'mw1':
         method: middleware.M1
-        depends: ['mw3']
     'mw2':
         method: middleware.M2
-        depends: ['mw3']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1','mw2']
         depends: ['mw4','mw5']
+        prepares: ['mw1','mw2']
     'mw4':
         method: middleware.M4
-        prepares: ['mw3']
     'mw5':
         method: middleware.M5
-        prepares: ['mw3']
 )
 func(result, ()->
     ['54321', '45321', '54312', '45312'].should.contain(result.data)
@@ -308,15 +296,12 @@ func = dispatch.getDispatchFunction(
         depends: ['mw2', 'mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw1']
         depends: ['mw4']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1']
         depends: ['mw4']
     'mw4':
         method: middleware.M4
-        prepares: ['mw3', 'mw2']
 )
 func(result, ()->
     ['4231', '4321'].should.contain(result.data)
@@ -351,18 +336,14 @@ func = dispatch.getDispatchFunction(
         depends: ['mw2', 'mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw1']
         depends: ['mw4']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1']
         depends: ['mw4', 'mw5']
     'mw4':
         method: middleware.M4
-        prepares: ['mw3', 'mw2']
     'mw5':
         method: middleware.M5
-        prepares: ['mw3']
 )
 func(result, ()->
     ['45231', '54231', '42531', '54321'].should.contain(result.data)
@@ -394,14 +375,11 @@ func = dispatch.getDispatchFunction(
         depends: ['mw2', 'mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw1']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1']
         depends: ['mw4']
     'mw4':
         method: middleware.M4
-        prepares: ['mw3']
 )
 func(result, ()->
     ['4231', '2431'].should.contain(result.data)
@@ -438,22 +416,17 @@ func = dispatch.getDispatchFunction(
         depends: ['mw2', 'mw3']
     'mw2':
         method: middleware.M2
-        prepares: ['mw1']
         depends: ['mw4']
     'mw3':
         method: middleware.M3
-        prepares: ['mw1']
         depends: ['mw4', 'mw5']
     'mw4':
         method: middleware.M4
-        prepares: ['mw3', 'mw2']
         depends: ['mw6']
     'mw5':
         method: middleware.M5
-        prepares: ['mw3']
     'mw6':
         method: middleware.M6
-        prepares: ['mw4']
 )
 func(result, ()->
     ['564231', '564321', '645231', '654231', '642531', '654321'].should.contain(result.data)
@@ -474,7 +447,6 @@ func1 = dispatch.getDispatchFunction(
     'mw2':
         name: 'mw2'
         method: middleware.M2
-        prepares: ['mw1']
 )
 
 result2 = 
@@ -483,7 +455,6 @@ func2 = dispatch.getDispatchFunction(
     'mw1':
         name: 'mw1'
         method: middleware.M1
-        prepares: ['mw2']
     'mw2':
         name: 'mw2'
         method: middleware.M2
