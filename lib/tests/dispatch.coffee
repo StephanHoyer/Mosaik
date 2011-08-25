@@ -37,7 +37,88 @@ or
         done() unless err
     )
 
+###
 
+###
+# Test completion of depends and prepares
+###
+
+completeConfig =
+    'mw1':
+        name: 'mw1'
+        method: middleware.M1
+        depends: ['mw2']
+        prepares: []
+    'mw2':
+        name: 'mw2'
+        method: middleware.M2
+        depends: []
+        prepares: ['mw1']
+
+config2 =
+    'mw1':
+        name: 'mw1'
+        method: middleware.M1
+    'mw2':
+        name: 'mw2'
+        method: middleware.M2
+        prepares: ['mw1']
+config1 =
+    'mw1':
+        name: 'mw1'
+        method: middleware.M1
+        depends: ['mw2']
+    'mw2':
+        name: 'mw2'
+        method: middleware.M2
+
+dispatch.should.respondTo('completeDependsPreparesArrays')
+should.deepEqual(
+    completeConfig,
+    dispatch.completeDependsPreparesArrays(config1)
+)
+should.deepEqual(
+    completeConfig
+    dispatch.completeDependsPreparesArrays(config2)
+)
+
+
+completeConfig =
+    'mw1':
+        name: 'mw1'
+        method: middleware.M1
+        depends: ['mw2']
+        prepares: []
+    'mw2':
+        name: 'mw2'
+        method: middleware.M2
+        depends: []
+        prepares: ['mw1', 'mw3']
+    'mw3':
+        name: 'mw3'
+        method: middleware.M3
+        depends: ['mw2']
+        prepares: []
+
+config =
+    'mw1':
+        name: 'mw1'
+        method: middleware.M1
+    'mw2':
+        name: 'mw2'
+        method: middleware.M2
+        prepares: ['mw1']
+    'mw3':
+        name: 'mw3'
+        method: middleware.M3
+        depends: ['mw2']
+
+should.deepEqual(
+    completeConfig,
+    dispatch.completeDependsPreparesArrays(config)
+)
+
+###
 M2 -> M1
 
 
