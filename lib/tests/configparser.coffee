@@ -136,6 +136,15 @@ config.validate(
             middlewares: 
                 'mw2':
                     method: (req, res) -> null 
+                    prepares: ['a', 'b']
+).should.be.ok
+
+config.validate(
+    childs: 
+        'route1':
+            middlewares: 
+                'mw2':
+                    method: (req, res) -> null 
                     depends: 'mw1'
 ).should.be.ok
 
@@ -577,26 +586,17 @@ config.merge(
 ).compile()
 
 should.deepEqual({
-    childs: 
-        'route1':
-            method: func
-            middlewares:
-                'baz':
-                    method: func
-                'foo':
-                    method: func
-                    depends: ['baz','bar']
-                'bar':
-                    method: func
-            childs: 
-                'block1':
-                    method: func
-                    middlewares:
-                        'foo':
-                            method: func
-                            depends: 'bar'
-                        'bar':
-                            method: func
-}, config.config, 'Middleware of second level should be merged to first level')
+    '__block:block1':
+        method: func
+        depends: ['bar', 'foo']
+        prepares: 'route1'
+    'baz':
+        method: func
+    'foo':
+        method: func
+        depends: ['baz','bar']
+    'bar':
+        method: func
+}, config.config.childs.route1.middlewares, 'Middleware of second level should be merged to first level')
 
 

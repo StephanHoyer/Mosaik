@@ -15,12 +15,11 @@ module.exports = class Config
         @walkRecursive()
         @validate(@config, 'semantic')
         @checkCircleMiddlewareDependencies()
-        @computeDependencies()
         @
 
     recursiveMerge: (obj1, obj2) ->
         for key, value of obj2
-            if key in ['routes', 'depends']
+            if key in ['routes', 'depends', 'prepares']
                 obj1[key] = (arrayfy(obj1[key]).concat(arrayfy(value))).unique()
             else
                 if obj1[key] and typeof obj1[key] is 'object' and typeof value is 'object'
@@ -49,6 +48,8 @@ module.exports = class Config
             @middlewares[key].method = middleware.method
             @middlewares[key].depends = arrayfy(@middlewares[key].depends)
                 .concat(arrayfy(middleware.depends)).unique()
+            @middlewares[key].prepares = arrayfy(@middlewares[key].prepares)
+                .concat(arrayfy(middleware.prepares)).unique()
 
     computeDependencies: (obj) ->
         return unless obj instanceof Object
@@ -104,12 +105,11 @@ module.exports = class Config
                         value,
                         "Middleware '#{middlewareName}': Method '#{value}' should be of type Function but is of type '#{typeof value}'"
                     ) 
-                when 'depends'
-                    value = [value] if value not instanceof Array
-                    for dependency in value 
+                when 'depends', 'prepares'
+                    for dependency in arrayfy(value)
                         @validateString(
                             dependency, 
-                            "Middleware '#{middlewareName}': Dependency '#{dependency}' should be of type String but is of type '#{typeof dependency}'"
+                            "Middleware '#{middlewareName}': #{value is 'depends' ? 'Dependency' : 'Follower'} '#{dependency}' should be of type String but is of type '#{typeof dependency}'"
                         )
                         throw new Error("Middleware '#{middlewareName}': Middleware can't be selfdepending") if middlewareName is dependency
                         if type is 'semantic'
