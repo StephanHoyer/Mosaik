@@ -42,4 +42,4 @@ applications to find out, how to test your code.
 Don't repeat youself (DRY) and also not others (DRY'n'ANO)
 ----------------------------------------------------------
 
-Writing the same code over and over again is boring and errorprone (@TODO fehleranfällig). Also time is money, especially for us developers. Mosaik tries to solve this in a number of ways. One example is the concept of requestrelated middleware, another one the reusable apps feature.
+Writing the same code over and over again is boring and errorprone. Also time is money, especially for us developers. Mosaik tries to solve this in a number of ways. One example is the concept of requestrelated middleware, another one the reusable apps feature.
