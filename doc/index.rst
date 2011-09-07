@@ -1,5 +1,5 @@
 =========================
-Mosik - Node Webframework
+Mosaik - Node Webframework
 =========================
 
 About
