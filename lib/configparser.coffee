@@ -67,9 +67,9 @@ module.exports = class Config
                 when 'routes'
                     value = [value] if value not instanceof Array
                     for route in value 
-                        @validateString(
+                        @validateStringOrRegExp(
                             route,
-                            "Block '#{name}': Route '#{route}' should be of type String but is of type '#{typeof route}'"
+                            "Block '#{name}': Route '#{route}' should be of type String or RegExp, but is of type '#{typeof route}'"
                         )
                 when 'types'
                     value = [value] if value not instanceof Array
@@ -136,6 +136,9 @@ module.exports = class Config
     
     validateString: (value, message) ->
         throw new Error(message) if typeof value isnt 'string'
+
+    validateStringOrRegExp: (value, message) ->
+        throw new Error(message) if typeof value isnt 'string' and value not instanceof RegExp
 
     validateFunction: (value, message) ->
         throw new Error(message) if typeof value isnt 'function'

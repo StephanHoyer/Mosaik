@@ -1,175 +1,201 @@
+merge = require('../util').merge
 should = require 'should'
 Config = require '../configparser'
 should.throw = should.throws
 
 config = new Config()
-config.config.should.eql({})
-config.should.respondTo('validate')
+
+module.exports = merge(module.exports,
+    'Config should have empty property config': () -> config.config.should.eql({})
+    'Config should respond to validate': () -> config.should.respondTo('validate')
+)
 
 ###
 # Test syntactic validation
 ###
 
-config.validate({}).should.be.ok
-should.throw(-> config.validate(foo: 'bar'))
+module.exports = merge(module.exports,
+    'Empty object should be valid': () -> config.validate({}).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            foo: []
-)), 'Block option can\'t be anything, e. G. foo.')
+    'Random config key should throw error': () -> should.throw(() -> config.validate(foo: 'bar'))
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            routes: [1,2]
-)), 'Routes can\'t be a array of numbers')
-
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            routes: 123
-)), 'Route can\'t be a number')
-
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            routes: 
-                bar: 'foo'
-)), 'Routes must not be objects')
-
-config.validate(
-    childs: 
-        'route1':
-            routes: [ 'index.php', '/index.html' ]
-).should.be.ok
-
-config.validate(
-    childs: 
-        'route1':
-            routes: '/index.html'
-).should.be.ok
-###
-# @TODO validator for regex routes
-config.validate(
-    childs: 
-        'route1':
-            routes: /foo[0-9]/
-).should.be.ok
-###
-config.validate(
-    childs: 
-        'route1':
-            types: 'GET'
-).should.be.ok
-
-config.validate(
-    childs: 
-        'route1':
-            types: 'PUT'
-).should.be.ok
-
-config.validate(
-    childs: 
-        'route1':
-            types: 'POST'
-).should.be.ok
-
-config.validate(
-    childs: 
-        'route1':
-            types: ['GET', 'PUT', 'POST', 'DELETE']
-).should.be.ok
-
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            types: ['foo', 'PUT', 'POST', 'DELETE']
-)), 'Types should be on of GET, POST, PUT or DELETE')
-
-config.validate(
-    childs: 
-        'route1':
+    'Random block option should throw error': () ->
+        should.throw(() -> config.validate(
             childs: 
-                'block1':
+                'route1':
+                    foo: []
+        ))
+
+    'Array of numbers as routes should throw error': () ->
+        should.throw(() -> config.validate(
+            childs: 
+                'route1':
+                    routes: [1,2]
+        ))
+
+    'Number as route should throw error': () ->
+        should.throw(() -> config.validate(
+            childs: 
+                'route1':
+                    routes: 123
+        ))
+
+    'Object as route should throw error': () ->
+        should.throw(()-> config.validate(
+            childs: 
+                'route1':
+                    routes: 
+                        bar: 'foo'
+        ))
+
+    'Array of strings as routes should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    routes: [ 'index.php', '/index.html' ]
+        ).should.be.ok
+    'String as route should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    routes: '/index.html'
+        ).should.be.ok
+
+    'Regex as route should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    routes: /foo[0-9]/
+        ).should.be.ok
+
+    'Route type GET should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    types: 'GET'
+        ).should.be.ok
+
+    'Route type PUT should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    types: 'PUT'
+        ).should.be.ok
+
+    'Route type POST should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    types: 'POST'
+        ).should.be.ok
+
+    'Array of valid route types should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
                     types: ['GET', 'PUT', 'POST', 'DELETE']
-).should.be.ok
+        ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw1':
-                    method: 123
-)), 'Method of type number must not be possible')
+    'Array of invalid route types should throw err': () ->
+        should.throw((-> config.validate(
+            childs: 
+                'route1':
+                    types: ['foo', 'PUT', 'POST', 'DELETE']
+        )), 'Types should be on of GET, POST, PUT or DELETE')
 
-config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw2':
-                    method: (req, res) -> null 
-).should.be.ok
+    'Types in subblocks should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    childs: 
+                        'block1':
+                            types: ['GET', 'PUT', 'POST', 'DELETE']
+        ).should.be.ok
 
-config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw1':
-                    method: (req, res) -> null 
-                'mw2':
-                    method: (req, res) -> null 
-).should.be.ok
+    'Middleware with method of type number should throw error': () ->
+        should.throw(() -> config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw1':
+                            method: 123
+        ))
 
-config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw2':
-                    method: (req, res) -> null 
-                    depends: ['a', 'b']
-).should.be.ok
+    'Middleware with method of type function should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2':
+                            method: () -> null 
+        ).should.be.ok
 
-config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw2':
-                    method: (req, res) -> null 
-                    prepares: ['a', 'b']
-).should.be.ok
+    'Multiple middlewares of type function should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw1':
+                            method: () -> null 
+                        'mw2':
+                            method: () -> null 
+        ).should.be.ok
 
-config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw2':
-                    method: (req, res) -> null 
-                    depends: 'mw1'
-).should.be.ok
+    'Middleware should can have a dependency': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2':
+                            method: () -> null 
+                            depends: 'mw1'
+        ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw2':
-                    depends: 'mw1'
-)), 'Middleware has to have at least a method-node')
+    'Middleware should can have multiple dependencies': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2':
+                            method: () -> null 
+                            depends: ['a', 'b']
+        ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            middlewares: 
-                'mw1':
-                    depends: 123
+    'Middleware should can have followers': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2':
+                            method: () -> null 
+                            prepares: ['a', 'b']
+        ).should.be.ok
+
+    'Middleware should have at least a method-node': () ->
+        should.throw(() -> config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2':
+                            depends: 'mw1'
+        ))
+
+    'Depends should not be of type other than string or array of strings': () ->
+        should.throw(()-> config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw1':
+                            depends: 123
+                            method: () -> null
+        ))
+
+    'Route with property method should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
                     method: () -> null
-)), 'depends must not be of type other than string or array of strings')
-
-config.validate(
-    childs: 
-        'route1':
-            method: () -> null
-).should.be.ok
+        ).should.be.ok
 
 should.throw((-> config.validate(
     childs: 
@@ -200,6 +226,8 @@ should.throw((-> config.validate(
         'route1':
             sortorder: 'foo'
 )), 'Block sortorder must be of type number')
+)
+###
 
 ###
 # Test recursive merge
