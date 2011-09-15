@@ -197,35 +197,40 @@ module.exports = merge(module.exports,
                     method: () -> null
         ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            method: 123
-)), 'Block method must not be of type other than function')
+    'Block method with type number should throw an error': () ->
+        should.throw((-> config.validate(
+            childs: 
+                'route1':
+                    method: 123
+        )), '')
 
-config.validate(
-    childs: 
-        'route1':
-            extends: 'foo'
-).should.be.ok
+    'Block with property extends should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    extends: 'foo'
+        ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            extends: 123
-)), 'Block extends must be of type string')
+    'Block with property extends of type other then number should throw an error': () ->
+        should.throw(() -> config.validate(
+            childs: 
+                'route1':
+                    extends: 123
+        ))
 
-config.validate(
-    childs: 
-        'route1':
-            sortorder: 123 
-).should.be.ok
+    'Block with property sortorder should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    sortorder: 123 
+        ).should.be.ok
 
-should.throw((-> config.validate(
-    childs: 
-        'route1':
-            sortorder: 'foo'
-)), 'Block sortorder must be of type number')
+    'Block with property sortorder should be valid': () ->
+        should.throw((-> config.validate(
+            childs: 
+                'route1':
+                    sortorder: 'foo'
+        )), 'Block sortorder must be of type number')
 )
 ###
 
