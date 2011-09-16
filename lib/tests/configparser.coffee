@@ -295,45 +295,56 @@ module.exports = merge(module.exports,
         obj.should.eql({a:1})
 )
 ###
-###
 # Test config merge
 ###
 
-config.merge(
-    childs: 
-        'route1':
-            sortorder: 123 
-).config.should.eql(
-    childs: 
-        'route1':
-            sortorder: 123 
-)
+module.exports = merge(module.exports,
+    'Merge to empty config should be identical to merged object': () ->
+        config = new Config()
+        config.merge(
+            childs: 
+                'route1':
+                    sortorder: 123 
+        ).config.should.eql(
+            childs: 
+                'route1':
+                    sortorder: 123 
+        )
 
-config.merge(
-    childs: 
-        'route1':
-            sortorder: 1234
-).config.should.eql(
-    childs: 
-        'route1':
-            sortorder: 1234
-, )
+    'Merge to existing config should be identical to merged object': () ->
+        config = new Config()
+        config.merge(
+            childs: 
+                'route1':
+                    sortorder: 123 
+        )
 
-func = () -> null
-should.deepEqual(
-    config.merge(
-        childs: 
-            'route1':
-                method: func 
-    ).config, 
-    {
-    childs: 
-        'route1':
-            sortorder: 1234
-            method: func
-    },
-    'Method should be merged to existing node'
+        config.merge(
+            childs: 
+                'route1':
+                    sortorder: 1234
+        ).config.should.eql(
+            childs: 
+                'route1':
+                    sortorder: 1234
+        )
+
+    'Methods should also be merged': () ->
+        config = new Config()
+        func = () -> null
+        should.deepEqual(
+            config.merge(
+                childs: 
+                    'route1':
+                        method: func 
+            ).config, 
+            {
+            childs: 
+                'route1':
+                    method: func
+            })
 )
+###
 
 ###
 # test routes tracking
