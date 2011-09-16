@@ -232,42 +232,69 @@ module.exports = merge(module.exports,
                     sortorder: 'foo'
         )), 'Block sortorder must be of type number')
 )
-###
 
 ###
 # Test recursive merge
 ###
 
-config.recursiveMerge({},{}).should.eql({})
-config.recursiveMerge({}, {a:1}).should.eql({a:1})
-config.recursiveMerge({a:1},{a:1}).should.eql({a:1})
-config.recursiveMerge({a:1},{a:2}).should.eql({a:2})
-config.recursiveMerge({a:1},{b:1}).should.eql({a:1,b:1})
-config.recursiveMerge({a:1},{b:{a:2}}).should.eql({a:1,b:{a:2}})
-config.recursiveMerge({b:{a:2}},{b:{a:{c:3}}}).should.eql({b:{a:{c:3}}})
-func = ()->null
-should.deepEqual(config.recursiveMerge({}, {a:func}),{a:func})
-config.recursiveMerge({routes: 'foo'}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
-config.recursiveMerge({routes: ['foo']}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
-config.recursiveMerge({routes: ['foo']}, {routes: ['bar']}).should.eql({routes: ['foo', 'bar']})
-config.recursiveMerge({routes: ['foo']}, {routes: ['foo']}).should.eql({routes: ['foo']})
-should.deepEqual(
-    config.recursiveMerge(
-        {
-            dependsTest: 
-                depends: ['foo']
-        },{
-            dependsTest:
-                depends: 'bar'
-        }
-    ),
-    dependsTest:
-        depends: ['foo', 'bar']
-)
-obj = {}
-config.recursiveMerge(obj, {a:1})
-obj.should.eql({a:1})
+module.exports = merge(module.exports,
+    'Merge of two empty objects should be empty object': () -> 
+        config.recursiveMerge({},{}).should.eql({})
 
+    'Merge of empty and non-empty object should be same as non-empty object itself': () -> 
+        config.recursiveMerge({}, {a:1}).should.eql({a:1})
+
+    'Merge of two identical objects should be one of the objects': () -> 
+        config.recursiveMerge({a:1},{a:1}).should.eql({a:1})
+
+    'Merge of two different objects with same properties should like the second one': () -> 
+        config.recursiveMerge({a:1},{a:2}).should.eql({a:2})
+
+    'Merge of two different objects with different properties should have both properties': () -> 
+        config.recursiveMerge({a:1},{b:1}).should.eql({a:1,b:1})
+
+    'Second object should alwas overwrite first, even if its more nestet': () -> 
+        config.recursiveMerge({b:{a:2}},{b:{a:{c:3}}}).should.eql({b:{a:{c:3}}})
+
+    'Merge of two different objects with different properties and nesting should have both properties': () -> 
+        config.recursiveMerge({a:1},{b:{a:2}}).should.eql({a:1,b:{a:2}})
+
+    'Also functions should be merged': () -> 
+        func = ()->null
+        should.deepEqual(config.recursiveMerge({}, {a:func}),{a:func})
+
+    'Merge of two routes as strings should result in array of routes': () -> 
+        config.recursiveMerge({routes: 'foo'}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
+
+    'Merge of routes as arrays and strings should result in array of routes': () -> 
+        config.recursiveMerge({routes: ['foo']}, {routes: 'bar'}).should.eql({routes: ['foo', 'bar']})
+
+    'Merge of routes as arrays should result in array of routes': () -> 
+        config.recursiveMerge({routes: ['foo']}, {routes: ['bar']}).should.eql({routes: ['foo', 'bar']})
+
+    'Resulting routes should not contain duplicates': () -> 
+        config.recursiveMerge({routes: ['foo']}, {routes: ['foo']}).should.eql({routes: ['foo']})
+
+    'Depends should behave like routes': () -> 
+        should.deepEqual(
+            config.recursiveMerge(
+                {
+                    dependsTest: 
+                        depends: ['foo']
+                },{
+                    dependsTest:
+                        depends: 'bar'
+                }
+            ),
+            dependsTest:
+                depends: ['foo', 'bar']
+        )
+    'Merge with object as variable should also work': () ->
+        obj = {}
+        config.recursiveMerge(obj, {a:1})
+        obj.should.eql({a:1})
+)
+###
 ###
 # Test config merge
 ###
