@@ -5,6 +5,12 @@ module.exports = class Config
     constructor: (@config={}) ->
         @routes = {} 
         @middlewares = {}
+        @__defineGetter__('routes', @getRoutes)
+
+    getRoutes: () -> [
+       routes: ['/']
+       dispatch: (t) -> t.res.send('Hello World')
+    ]
 
     merge: (config={}) ->
         @validate(config)
@@ -61,7 +67,7 @@ module.exports = class Config
     validate: (config={}, type='syntactic', name='ROOT') ->
         for key, value of config
             switch key
-                when 'childs'
+                when 'childs', 'layout'
                     for name, config of config.childs
                         @validate(config, type, name)
                 when 'routes'
