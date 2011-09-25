@@ -23,6 +23,9 @@ route: helloWorld
 renderObject = (req, res) ->
     req.object.renderWithTemplate(res.template)
 
+renderForm = (req, res) ->
+    req.form.renderWithTemplate(res.template)
+
 ###
 # req: Request object
 #   req.route blockname of route which initially catched the request
@@ -42,12 +45,12 @@ loadFromDb = (req, res, done, next) ->
 module.exports.config = 
     childs:
         'showSomeDbContent':
-            route: /.*/
+            route: '/.*/'
             method: renderObject
             template: 'niceTemplate'
             middlewares:
                 'loadFromDb':
-                    method: loadfromDb
+                    method: loadFromDb
 
 ###
 
@@ -68,19 +71,19 @@ checkLoginState = (req, res, done, next) ->
     res.redirect('login')
 checkLogin = (req, res, done, next) ->
     done() if req.type is 'GET'
-    db.checkUser(req.data.username, req.data.password, (err, user) ->
+    db.checkUser(req.data.username, req.data.password, err, user) ->
         done() if err
         req.session.user = user
         res.redirect(req.session.back)
 
 module.exports.config = 
     childs:
-        'login'
+        'login':
             route: 'user/login'
             type: ['POST', 'GET']
             method: renderForm
             middlewares:
-                'checkLogin'
+                'checkLogin':
                     method: checkLogin
 
         'showSomeDbContentWhichRequiresLogin':
@@ -89,7 +92,7 @@ module.exports.config =
             template: 'niceTemplate'
             middlewares:
                 'loadFromDb':
-                    method: loadfromDb
+                    method: loadFromDb
                     depends: 
                         'checkLogin':
                             method: checkLoginState
