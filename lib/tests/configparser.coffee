@@ -121,6 +121,14 @@ module.exports = merge(module.exports,
                             method: 123
         ))
 
+    'Middleware of type function should be valid': () ->
+        config.validate(
+            childs: 
+                'route1':
+                    middlewares: 
+                        'mw2': () -> null 
+        ).should.be.ok
+
     'Middleware with method of type function should be valid': () ->
         config.validate(
             childs: 
@@ -345,7 +353,68 @@ module.exports = merge(module.exports,
             })
 )
 ###
+# test attachment of dispatch function
+###
 
+# func is a function that is returning the 
+# same random number every time called
+func = (() -> 
+    rand = Math.random()
+    return (t, done) -> 
+        t.result = t.data + rand
+        done();
+)()
+
+
+module.exports = merge(module.exports,
+    'Call of attachDispatcher should generate a method dispatch': () ->
+        config = new Config()
+        config.merge(
+            childs: 
+                'route1':
+                    middlewares: 
+                        "render": 
+                            method: func 
+        )
+        config.should.respondTo('attachDispatcher')
+        config.attachDispatcher(config.config.childs.route1)
+        config.config.childs.route1.should.respondTo('dispatch')
+        t1 = {data: 'foo'} 
+        t2 = {data: 'foo'} # @todo clone t1
+        config.config.childs.route1.dispatch(t1)
+        func(t2, ()->null)
+        t1.result.should.eql(t2.result)
+    ###
+    'Short syntax of defining middleware should also be possible': () ->
+        config = new Config()
+        config.merge(
+            childs: 
+                'route1':
+                    middlewares: 
+                        "render": func 
+        )
+        config.attachDispatcher(config.config.childs.route1)
+        config.config.childs.route1.dispatch('foo').should.eql(func('foo'))
+
+    'Dependencies in middles should be integrated in the dispatch method': () ->
+        config = new Config()
+        config.merge(
+            childs: 
+                'route1':
+                    middlewares: 
+                        "render": 
+                            method: func 
+        )
+        config.attachDispatcher(config.config.childs.route1)
+        config.config.childs.route1.dispatch('foo').should.eql(func('foo'))
+    ###
+)
+
+
+
+
+
+###
 ###
 # test routes tracking
 ###

@@ -1,16 +1,12 @@
 arrayfy = require('./util').arrayfy
 require('./util').ArrayUnique()
 
+
 module.exports = class Config
     constructor: (@config={}) ->
         @routes = {} 
         @middlewares = {}
-        @__defineGetter__('routes', @getRoutes)
-
-    getRoutes: () -> [
-       routes: ['/']
-       dispatch: (t) -> t.res.send('Hello World')
-    ]
+        #@__defineGetter__('routes', @getRoutes)
 
     merge: (config={}) ->
         @validate(config)
@@ -38,8 +34,14 @@ module.exports = class Config
         if obj instanceof Object  
             for key, value of obj
                 # collect routes
-                if path[0] is 'childs' and value.routes
-                    @routes[key] = arrayfy(value.routes)
+-               if path[0] is 'childs' and value.routes
+-                    @routes[key] = arrayfy(value.routes)
+                # add dispatch functions
+                if path[0] in ['childs', 'layout'] 
+                    value.dispatch = (t) -> t.res.send('foo World')
+                    # collect routes
+                    if value.routes
+                        @routes[key] = arrayfy(value.routes)
                 # collect middlewares
                 if key is 'middlewares'
                     @collectMiddlewares(value)
@@ -109,6 +111,7 @@ module.exports = class Config
         @
 
     validateMiddleware: (config={}, middlewareName, type, blockName) ->
+        return if typeof config is 'function'
         throw new Error("Middleware '#{middlewareName}': No method defined") if not config.method
         for key, value of config
             switch key
@@ -148,6 +151,52 @@ module.exports = class Config
                 throw new Error("Middleware: Circle dependency detected: (#{chainString})") 
             @checkCircleMiddlewareDependencies(dependency, chain)
                 
+    attachDispatcher: (block) ->
+        block.dispatch = @getDispatchFunction(block)
+
+    completeDependencyArrays: (block) ->
+        for name, func of block.middlewares
+            func.method = func if typeof func is 'function'
+            func.depends = arrayfy(func.depends)
+            func.prepares = arrayfy(func.prepares)
+            for dependency in func.depends
+                dependency = block.middlewares[dependency]
+                dependency.prepares = arrayfy(dependency.prepares)
+                dependency.prepares.push(name) if name not in dependency.prepares
+            for follower in func.prepares
+                follower = block[follower]
+                follower.depends = arrayfy(follower.depends)
+                follower.depends.push(name) if name not in follower.depends
+        block
+
+    getDispatchFunction: (block) ->
+        @completeDependencyArrays(block)
+        __dispatchInit = {prepares: []}
+        getDispatchFunc = (action) ->
+            return (t) -> 
+                if action.prepares
+                    for name in action.prepares
+                        follower = block.middlewares[name]
+                        follower.isReady(t) if follower.isReady
+                else
+                    __dispatchFinish.isReady(t)
+        getIsReadyFunc = (action) ->
+            action.countDone = 0
+            return (t) ->
+                action.countDone++
+                if action.countDone is action.depends.length
+                    if action.method
+                        action.method(t, () -> action.dispatch(t)) 
+                    else
+                        action.dispatch(t)
+        for name, action of block.middlewares
+            unless action.depends?.length 
+                __dispatchInit.prepares.push(name)
+                action.depends = ['__dispatchInit']
+            action.isReady = getIsReadyFunc(action)
+            action.dispatch = getDispatchFunc(action)
+        block.__dispatchInit = __dispatchInit
+        getDispatchFunc(__dispatchInit) 
 
     validateNumber: (value, message) ->
         throw new Error(message) if typeof value isnt 'number'

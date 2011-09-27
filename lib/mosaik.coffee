@@ -7,11 +7,15 @@ server = null
 module.exports.createServer = createServer = (config) ->
     server = connect.createServer()
     server.addConfig = addConfig
+    server.compileConfig = compileConfig
     server.addConfig(config) if config
     server
 
 addConfig = (config) ->
     serverConfig.merge(config)
+
+compileConfig = () ->
+    serverConfig.compile()
     server.use(connect.router((app) ->
         for routeObj in serverConfig.routes
             for route in routeObj.routes
