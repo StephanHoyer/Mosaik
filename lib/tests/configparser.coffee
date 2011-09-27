@@ -130,9 +130,9 @@ module.exports = merge(module.exports,
                             method: () -> null 
         ).should.be.ok
 
-    'Multiple middlewares of type function should be valid': () ->
+    'Multiple middlewares with method of type function should be valid': () ->
         config.validate(
-            childs: 
+            childs:
                 'route1':
                     middlewares: 
                         'mw1':

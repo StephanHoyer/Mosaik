@@ -68,36 +68,42 @@ module.exports = class Config
         for key, value of config
             switch key
                 when 'childs', 'layout'
-                    for name, config of config.childs
-                        @validate(config, type, name)
+                    for nodeName, config of config.childs
+                        @validate(config, type, nodeName)
                 when 'routes'
                     value = [value] if value not instanceof Array
                     for route in value 
                         @validateStringOrRegExp(
                             route,
-                            "Block '#{name}': Route '#{route}' should be of type String or RegExp, but is of type '#{typeof route}'"
+                            "Block '#{name}': Route '#{route}' should be of \
+                            type String or RegExp, but is of type '#{typeof route}'"
                         )
                 when 'types'
                     value = [value] if value not instanceof Array
                     for type in value when type not in ['GET', 'POST', 'PUT', 'DELETE']
-                        throw new Error("Block '#{name}': Type '#{type}' is not allowed, use one of 'GET', 'POST', 'PUT', 'DELETE'")
+                        throw new Error("Block '#{name}': Type '#{type}' \
+                            is not allowed, use one of 'GET', 'POST', 'PUT', 'DELETE'")
                 when 'middlewares'
-                    @validateMiddleware(middlewareConfig, middlewareName, type, name) for middlewareName, middlewareConfig of value
+                    for middlewareName, middlewareConfig of value
+                        @validateMiddleware(middlewareConfig, middlewareName, type, name) 
                 when 'method'
                     @validateFunction(
                         value,
-                        "Middleware '#{name}': Method '#{value}' should be of type Function but is of type '#{typeof value}'"
+                        "Middleware '#{name}': Method '#{value}' should be of type \
+                            Function but is of type '#{typeof value}'"
                     )
                 when 'extends'
-                        @validateString(
-                            value,
-                            "Block '#{name}': Block name to extend '#{value}' should be of type String but is of type '#{typeof value}'"
-                        )
+                    @validateString(
+                        value,
+                        "Block '#{name}': Block name to extend '#{value}' should be \
+                            of type String but is of type '#{typeof value}'"
+                    )
                 when 'sortorder'
-                        @validateNumber(
-                            value,
-                            "Block '#{name}': Block sortorder '#{value}' should be of type Number but is of type '#{typeof value}'"
-                        )
+                    @validateNumber(
+                        value,
+                        "Block '#{name}': Block sortorder '#{value}' should be of type \
+                            Number but is of type '#{typeof value}'"
+                    )
                 else
                     throw new Error("Block '#{name}': Unknown router key '#{key}'")
         @
@@ -109,17 +115,23 @@ module.exports = class Config
                 when 'method'
                     @validateFunction(
                         value,
-                        "Middleware '#{middlewareName}': Method '#{value}' should be of type Function but is of type '#{typeof value}'"
+                        "Middleware '#{middlewareName}': Method '#{value}' should be of \
+                            type Function but is of type '#{typeof value}'"
                     ) 
                 when 'depends', 'prepares'
                     for dependency in arrayfy(value)
                         @validateString(
                             dependency, 
-                            "Middleware '#{middlewareName}': #{value is 'depends' ? 'Dependency' : 'Follower'} '#{dependency}' should be of type String but is of type '#{typeof dependency}'"
+                            "Middleware '#{middlewareName}': \
+                                #{value is 'depends' ? 'Dependency' : 'Follower'} \
+                                '#{dependency}' should be of type String but is of \
+                                type '#{typeof dependency}'"
                         )
-                        throw new Error("Middleware '#{middlewareName}': Middleware can't be selfdepending") if middlewareName is dependency
-                        if type is 'semantic'
-                            throw new Error("Middleware '#{middlewareName}': Dependency '#{dependency}' has no implementation") unless @middlewares[dependency]
+                        throw new Error("Middleware '#{middlewareName}': Middleware can't \
+                            be selfdepending") if middlewareName is dependency
+                        if type is 'semantic' and not @middlewares[dependency]
+                            throw new Error("Middleware '#{middlewareName}': Dependency \
+                                '#{dependency}' has no implementation") 
                 else 
                     throw new Error("Middleware '#{middlewareName}': Unknown config key '#{key}'")
 

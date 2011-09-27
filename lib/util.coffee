@@ -25,7 +25,7 @@ module.exports.arrayfy = (value) ->
     return [value] unless value instanceof Array
     value
 
-module.exports.ArrayUnique = ->
+module.exports.ArrayUnique = () ->
     if not Array::unique
         Array::unique = ->
             newArray = []
