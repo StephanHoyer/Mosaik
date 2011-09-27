@@ -21,7 +21,7 @@ module.exports = merge(module.exports,
            layout:
                'helloWorld':
                     routes: '/'
-                    middlewares:
+                    actions:
                         'render': (req, block, action) -> 
                             block.send('Hello World')
                             action.done()

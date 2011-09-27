@@ -21,28 +21,28 @@ module.exports = merge(module.exports,
 
     'Random block option should throw error': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     foo: []
         ))
 
     'Array of numbers as routes should throw error': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: [1,2]
         ))
 
     'Number as route should throw error': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: 123
         ))
 
     'Object as route should throw error': () ->
         should.throw(()-> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: 
                         bar: 'foo'
@@ -50,149 +50,149 @@ module.exports = merge(module.exports,
 
     'Array of strings as routes should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: [ 'index.php', '/index.html' ]
         ).should.be.ok
     'String as route should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: '/index.html'
         ).should.be.ok
 
     'Regex as route should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     routes: /foo[0-9]/
         ).should.be.ok
 
     'Route type GET should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     types: 'GET'
         ).should.be.ok
 
     'Route type PUT should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     types: 'PUT'
         ).should.be.ok
 
     'Route type POST should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     types: 'POST'
         ).should.be.ok
 
     'Array of valid route types should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     types: ['GET', 'PUT', 'POST', 'DELETE']
         ).should.be.ok
 
     'Array of invalid route types should throw err': () ->
         should.throw((-> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     types: ['foo', 'PUT', 'POST', 'DELETE']
         )), 'Types should be on of GET, POST, PUT or DELETE')
 
     'Types in subblocks should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    childs: 
+                    blocks: 
                         'block1':
                             types: ['GET', 'PUT', 'POST', 'DELETE']
         ).should.be.ok
 
-    'Middleware with method of type number should throw error': () ->
+    'Action with method of type number should throw error': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw1':
                             method: 123
         ))
 
-    'Middleware of type function should be valid': () ->
+    'Action of type function should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2': () -> null 
         ).should.be.ok
 
-    'Middleware with method of type function should be valid': () ->
+    'Action with method of type function should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2':
                             method: () -> null 
         ).should.be.ok
 
-    'Multiple middlewares with method of type function should be valid': () ->
+    'Multiple actions with method of type function should be valid': () ->
         config.validate(
-            childs:
+            blocks:
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw1':
                             method: () -> null 
                         'mw2':
                             method: () -> null 
         ).should.be.ok
 
-    'Middleware should can have a dependency': () ->
+    'Action should can have a dependency': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2':
                             method: () -> null 
                             depends: 'mw1'
         ).should.be.ok
 
-    'Middleware should can have multiple dependencies': () ->
+    'Action should can have multiple dependencies': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2':
                             method: () -> null 
                             depends: ['a', 'b']
         ).should.be.ok
 
-    'Middleware should can have followers': () ->
+    'Action should can have followers': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2':
                             method: () -> null 
                             prepares: ['a', 'b']
         ).should.be.ok
 
-    'Middleware should have at least a method-node': () ->
+    'Action should have at least a method-node': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw2':
                             depends: 'mw1'
         ))
 
     'Depends should not be of type other than string or array of strings': () ->
         should.throw(()-> config.validate(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         'mw1':
                             depends: 123
                             method: () -> null
@@ -200,42 +200,42 @@ module.exports = merge(module.exports,
 
     'Route with property method should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     method: () -> null
         ).should.be.ok
 
     'Block method with type number should throw an error': () ->
         should.throw((-> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     method: 123
         )), '')
 
     'Block with property extends should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     extends: 'foo'
         ).should.be.ok
 
     'Block with property extends of type other then number should throw an error': () ->
         should.throw(() -> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     extends: 123
         ))
 
     'Block with property sortorder should be valid': () ->
         config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 123 
         ).should.be.ok
 
     'Block with property sortorder should be valid': () ->
         should.throw((-> config.validate(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 'foo'
         )), 'Block sortorder must be of type number')
@@ -310,11 +310,11 @@ module.exports = merge(module.exports,
     'Merge to empty config should be identical to merged object': () ->
         config = new Config()
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 123 
         ).config.should.eql(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 123 
         )
@@ -322,17 +322,17 @@ module.exports = merge(module.exports,
     'Merge to existing config should be identical to merged object': () ->
         config = new Config()
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 123 
         )
 
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 1234
         ).config.should.eql(
-            childs: 
+            blocks: 
                 'route1':
                     sortorder: 1234
         )
@@ -342,12 +342,12 @@ module.exports = merge(module.exports,
         func = () -> null
         should.deepEqual(
             config.merge(
-                childs: 
+                blocks: 
                     'route1':
                         method: func 
             ).config, 
             {
-            childs: 
+            blocks: 
                 'route1':
                     method: func
             })
@@ -370,43 +370,43 @@ module.exports = merge(module.exports,
     'Call of attachDispatcher should generate a method dispatch': () ->
         config = new Config()
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         "render": 
                             method: func 
         )
         config.should.respondTo('attachDispatcher')
-        config.attachDispatcher(config.config.childs.route1)
-        config.config.childs.route1.should.respondTo('dispatch')
+        config.attachDispatcher(config.config.blocks.route1)
+        config.config.blocks.route1.should.respondTo('dispatch')
         t1 = {data: 'foo'} 
         t2 = {data: 'foo'} # @todo clone t1
-        config.config.childs.route1.dispatch(t1)
+        config.config.blocks.route1.dispatch(t1)
         func(t2, ()->null)
         t1.result.should.eql(t2.result)
     ###
-    'Short syntax of defining middleware should also be possible': () ->
+    'Short syntax of defining action should also be possible': () ->
         config = new Config()
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         "render": func 
         )
-        config.attachDispatcher(config.config.childs.route1)
-        config.config.childs.route1.dispatch('foo').should.eql(func('foo'))
+        config.attachDispatcher(config.config.blocks.route1)
+        config.config.blocks.route1.dispatch('foo').should.eql(func('foo'))
 
     'Dependencies in middles should be integrated in the dispatch method': () ->
         config = new Config()
         config.merge(
-            childs: 
+            blocks: 
                 'route1':
-                    middlewares: 
+                    actions: 
                         "render": 
                             method: func 
         )
-        config.attachDispatcher(config.config.childs.route1)
-        config.config.childs.route1.dispatch('foo').should.eql(func('foo'))
+        config.attachDispatcher(config.config.blocks.route1)
+        config.config.blocks.route1.dispatch('foo').should.eql(func('foo'))
     ###
 )
 
@@ -422,7 +422,7 @@ module.exports = merge(module.exports,
 config = new Config()
 
 config.merge(
-    childs: 
+    blocks: 
         'block1':
             routes: 'foo'
 ).compile()
@@ -431,7 +431,7 @@ config.routes.should.eql(
     'Merge to empty config should generate one route'
 )
 config.merge(
-    childs: 
+    blocks: 
         'block1':
             routes: 'foo'
 ).compile()
@@ -442,7 +442,7 @@ config.routes.should.eql(
 )
 
 config.merge(
-    childs: 
+    blocks: 
         'block2':
             routes: 'foo'
 ).compile()
@@ -453,7 +453,7 @@ config.routes.should.eql(
 )
 
 config.merge(
-    childs: 
+    blocks: 
         'block2':
             routes: 'bar'
 ).compile()
@@ -464,15 +464,15 @@ config.routes.should.eql(
 )
 
 ###
-# test middleware tracking
+# test action tracking
 ###
 
 config = new Config()
 func = () -> null
 config.merge(
-    childs: 
+    blocks: 
         'block1':
-            middlewares:
+            actions:
                 'bar':
                     method: func
                 'foo':
@@ -481,7 +481,7 @@ config.merge(
                         'bar'
 ).compile()
 should.deepEqual(
-    config.middlewares,
+    config.actions,
     'bar': 
         method: func
         depends: []
@@ -493,9 +493,9 @@ should.deepEqual(
 )
 
 config.merge(
-    childs: 
+    blocks: 
         'block1':
-            middlewares:
+            actions:
                 'foo':
                     method: func
                     depends: 'baz'
@@ -504,7 +504,7 @@ config.merge(
 ).compile()
 
 should.deepEqual(
-    config.middlewares,
+    config.actions,
     'bar': 
         method: func
         depends: []
@@ -515,7 +515,7 @@ should.deepEqual(
         method: func
         depends: []
     ,
-    'Add new dependency to middleware should also be added to middleware collection'
+    'Add new dependency to action should also be added to action collection'
 )
 
 ###
@@ -523,7 +523,7 @@ should.deepEqual(
 ###
 
 config.merge(
-    childs: 
+    blocks: 
         'block1':
             routes: 'foo'
 ).compile()
@@ -534,7 +534,7 @@ config.routes.should.eql(
 )
 
 config.merge(
-    childs: 
+    blocks: 
         'block2':
             routes: 'foo'
 ).compile()
@@ -545,7 +545,7 @@ config.routes.should.eql(
 )
 
 config.merge(
-    childs: 
+    blocks: 
         'block2':
             routes: 'bar'
 ).compile()
@@ -561,9 +561,9 @@ config.routes.should.eql(
 config = new Config()
 
 config.merge(
-    childs: 
+    blocks: 
         'route1':
-            middlewares:
+            actions:
                 'mw1':
                     method: () -> null
                 'mw2':
@@ -572,18 +572,18 @@ config.merge(
 ).compile().should.be.ok
 
 should.throw((-> config.merge(
-    childs: 
+    blocks: 
         'route1':
-            middlewares:
+            actions:
                 'mw1':
                     method: () -> null
                     depends: 'mw1'
-).compile()), 'Middleware can\'t be selfdepending')
+).compile()), 'Action can\'t be selfdepending')
 
 should.throw((-> config.merge(
-    childs: 
+    blocks: 
         'route1':
-            middlewares:
+            actions:
                 'mw3':
                     method: () -> null
                     depends: 'mw2'
@@ -596,9 +596,9 @@ should.throw((-> config.merge(
 ).compile()), 'Circle dependency detected (3 steps)')
 
 should.throw((-> config.merge(
-    childs: 
+    blocks: 
         'route1':
-            middlewares:
+            actions:
                 'mw2':
                     method: () -> null
                     depends: 'mw1'
@@ -608,13 +608,13 @@ should.throw((-> config.merge(
 ).compile()), 'Circle dependency detected (2 steps)')
 
 should.throw((-> config.merge(
-    childs: 
+    blocks: 
         'route1':
-            middlewares:
+            actions:
                 'mw1':
                     method: () -> null
                     depends: 'mw2'
-).compile()), 'Middleware can\'t depend on unexisting middleware')
+).compile()), 'Action can\'t depend on unexisting action')
 
 ###
 # test dependency computation
@@ -625,7 +625,7 @@ func = -> null
 config = new Config()
 
 config.merge(
-    childs: 
+    blocks: 
         'route1':
             method: func
 )
@@ -633,19 +633,19 @@ config.merge(
 config.compile()
 
 should.deepEqual({
-    childs: 
+    blocks: 
         'route1':
             method: func
-            middlewares: {}
-}, config.config, 'No middleware should result in empty middleware object')
+            actions: {}
+}, config.config, 'No action should result in empty action object')
 
 config = new Config()
 
 config.merge(
-    childs: 
+    blocks: 
         'route1':
             method: func
-            middlewares:
+            actions:
                 'bar':
                     method: func
                 'foo':
@@ -654,10 +654,10 @@ config.merge(
 ).compile()
 
 should.deepEqual({
-    childs: 
+    blocks: 
         'route1':
             method: func
-            middlewares:
+            actions:
                 'bar':
                     method: func
                 'foo':
@@ -668,13 +668,13 @@ should.deepEqual({
 config = new Config()
 
 config.merge(
-    childs: 
+    blocks: 
         'route1':
             method: func
-            childs: 
+            blocks: 
                 'block1':
                     method: func
-                    middlewares:
+                    actions:
                         'bar':
                             method: func
                         'foo':
@@ -683,41 +683,41 @@ config.merge(
 ).compile()
 
 should.deepEqual({
-    childs: 
+    blocks: 
         'route1':
             method: func
-            childs: 
+            blocks: 
                 'block1':
                     method: func
-                    middlewares:
+                    actions:
                         'bar':
                             method: func
                         'foo':
                             method: func
                             depends: 'bar'
-            middlewares:
+            actions:
                 'bar':
                     method: func
                 'foo':
                     method: func
                     depends: 'bar'
-}, config.config, 'Middleware of second level should also be pulled to first level')
+}, config.config, 'Action of second level should also be pulled to first level')
 
 config = new Config()
 config.merge(
-    childs: 
+    blocks: 
         'route1':
             method: func
-            middlewares:
+            actions:
                 'baz':
                     method: func
                 'foo':
                     method: func
                     depends: 'baz'
-            childs: 
+            blocks: 
                 'block1':
                     method: func
-                    middlewares:
+                    actions:
                         'foo':
                             method: func
                             depends: 'bar'
@@ -737,6 +737,6 @@ should.deepEqual({
         depends: ['baz','bar']
     'bar':
         method: func
-}, config.config.childs.route1.middlewares, 'Middleware of second level should be merged to first level')
+}, config.config.blocks.route1.actions, 'Action of second level should be merged to first level')
 
 
