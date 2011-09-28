@@ -2,6 +2,12 @@
 Mosaik - Node Webframework
 =========================
 
+NOTICE
+======
+
+This is a work in progress and **may change** without any notices.
+
+
 About
 =====
 
