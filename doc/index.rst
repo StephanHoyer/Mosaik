@@ -57,7 +57,7 @@ Mac OS X
 --------
 
 First install node.js if you aren't already have. One way is to compile it yourself. But the preferable method is to use
-a package manager like [Homebrew][brew]:
+a package manager like Homebrew: https://github.com/mxcl/homebrew.
 
 ::
 
@@ -118,6 +118,3 @@ To run unit tests, simply use the expresso command:
 
     # Or with Growl support
     expresso -g lib/mosaik.js
-    
-[brew]:https://github.com/mxcl/homebrew
-
