@@ -49,3 +49,72 @@ Don't repeat youself (DRY) and also not others (DRY'n'ANO)
 ----------------------------------------------------------
 
 Writing the same code over and over again is boring and errorprone. Also time is money, especially for us developers. Mosaik tries to solve this in a number of ways. One example is the concept of multiple requestrelated actions, another one the reusable apps feature.
+
+Getting started
+===============
+
+Mac OS X
+--------
+
+First install node.js if you aren't already have. One way is to compile it yourself. But the preferable method is to use
+a package manager like Homebrew: https://github.com/mxcl/homebrew.
+
+::
+
+    brew install node
+
+After that, you should be able to see the installed version of node using the following command:
+
+::
+
+    node -v
+    # v0.4.12
+
+As you may already noticed *mosaik* is not written in plain javascript - it's coffee script. Therefore you need to
+install the compiler as well:
+
+::
+
+    brew install coffee-script
+
+    # You may want to use npm for this (-g means global)
+    npm install -g coffee-script
+
+The next step is to install the node package manager, simply called *npm*. Unfornatunately there is no way to install
+npm using Homebrew at the moment, but there's a handy one liner for this:
+
+::
+
+    curl http://npmjs.org/install.sh | sh
+
+With npm in place you're now able to install the necessary node packages mosaik depends on:
+
+::
+
+    npm install connect
+
+    # Next ones are necessary for unit testing
+    npm install expresso
+    npm install should
+
+Now it's time to compile to project using coffee-script (from project root):
+
+::
+
+    coffee -c . 
+
+There should be several new javascript files in your project now - one .js file for each .coffee file. To run one of
+these scripts its easy as saying:
+
+::
+
+    node FILE.js
+
+To run unit tests, simply use the expresso command:
+
+::
+
+    expresso lib/mosaik.js
+
+    # Or with Growl support
+    expresso -g lib/mosaik.js
