@@ -89,6 +89,22 @@ npm using Homebrew at the moment, but there's a handy one liner for this:
 
 With npm in place you're now able to install the necessary node packages mosaik depends on:
 
+Short version
+~~~~~~~~~~~~~
+
+*mosaik* is shipped with a dependency file, which can be parsed by node package manager.
+Therefore one can install all required tools by running the following command:
+
+::
+
+    npm install
+
+*NOTE*: This will install versions defined by the *mosaik* team - if you want to install specific versions or not all
+of them, feel free to use the long version described below.
+
+Long version
+~~~~~~~~~~~~
+
 ::
 
     npm install connect
