@@ -1,6 +1,5 @@
-merge = require('../util').merge
-should = require 'should'
-Config = require '../configparser'
+should = require('should')
+Config = require('../config')
 should.throw = should.throws
 
 config = new Config()
@@ -360,9 +359,9 @@ module.exports = merge(module.exports,
 # same random number every time called
 func = (() -> 
     rand = Math.random()
-    return (t, done) -> 
-        t.result = t.data + rand
-        done();
+    return (req, block, action) -> 
+        t.result = block.data + rand
+        action.done();
 )()
 
 

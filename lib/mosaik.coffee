@@ -1,5 +1,5 @@
 connect = require('connect')
-Config = require('./configparser')
+Config = require('./config')
 
 serverConfig = new Config()
 server = null
