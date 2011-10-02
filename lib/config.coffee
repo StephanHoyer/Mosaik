@@ -161,7 +161,8 @@ module.exports = class Config
             func.prepares = arrayfy(func.prepares)
             for dependency in func.depends
                 dependency = block.actions[dependency]
-                dependency.prepares = arrayfy(dependency.prepares)
+                continue unless dependency
+                dependency.prepares = arrayfy(dependency.prepares) 
                 dependency.prepares.push(name) if name not in dependency.prepares
             for follower in func.prepares
                 follower = block[follower]
@@ -189,7 +190,7 @@ module.exports = class Config
                     else
                         action.dispatch(req)
         for name, action of block.actions
-            unless action.depends?.length
+            unless action.depends?.length and action.depends is ['__dispatchInit']
                 __dispatchInit.prepares.push(name)
                 action.depends = ['__dispatchInit']
             action.isReady = getIsReadyFunc(action)

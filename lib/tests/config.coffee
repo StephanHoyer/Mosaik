@@ -358,33 +358,36 @@ module.exports = merge(module.exports,
 
 # func is a function that is returning the 
 # same random number every time called
-func = (() -> 
-    rand = Math.random()
-    return (req, block, action) -> 
-        req.result = req.data + rand
-        action.done();
-)()
+getFunc = (string) ->
+    return (req, block, action) ->
+        if req.result
+            req.result += string
+        else
+            req.result = req.data + string
+        action.done()
 
+func = getFunc(Math.random())
+func2 = getFunc(Math.random())
 
 module.exports = merge(module.exports,
     'Call of attachDispatcher should generate a method dispatch': () ->
         config = new Config()
         config.merge(
-            blocks: 
+            blocks:
                 'route1':
-                    actions: 
-                        "render": 
-                            method: func 
+                    actions:
+                        "render":
+                            method: func
         )
         config.should.respondTo('attachDispatcher')
         config.attachDispatcher(config.config.blocks.route1)
         config.config.blocks.route1.should.respondTo('dispatch')
-        req1 = {data: 'foo'} 
+        req1 = {data: 'foo'}
         req2 = {data: 'foo'} # @todo clone t1
         config.config.blocks.route1.dispatch(req1)
         func(req2, {}, {done: ()->null})
         req1.result.should.eql(req2.result)
-    ###
+
     'Short syntax of defining action should also be possible': () ->
         config = new Config()
         config.merge(
@@ -394,25 +397,29 @@ module.exports = merge(module.exports,
                         "render": func 
         )
         config.attachDispatcher(config.config.blocks.route1)
-        config.config.blocks.route1.dispatch('foo').should.eql(func('foo'))
+        req1 = {data: 'foo'} 
+        req2 = {data: 'foo'} # @todo clone t1
+        config.config.blocks.route1.dispatch(req1)
+        func(req2, {}, {done: ()->null})
+        req1.result.should.eql(req2.result)
 
-    'Dependencies in middles should be integrated in the dispatch method': () ->
+    'Multiple actions in block should all be called': () ->
         config = new Config()
         config.merge(
             blocks: 
                 'route1':
                     actions: 
-                        "render": 
-                            method: func 
+                        'render': func 
+                        'foo': func2
         )
         config.attachDispatcher(config.config.blocks.route1)
-        config.config.blocks.route1.dispatch('foo').should.eql(func('foo'))
-    ###
+        req1 = {data: 'foo'} 
+        req2 = {data: 'foo'} # @todo clone t1
+        config.config.blocks.route1.dispatch(req1)
+        func(req2, {}, {done: ()->null})
+        func2(req2, {}, {done: ()->null})
+        req1.result.should.eql(req2.result)
 )
-
-
-
-
 
 ###
 ###
