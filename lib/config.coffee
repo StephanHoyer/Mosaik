@@ -39,7 +39,6 @@ module.exports = class Config
                 
                 # add dispatch functions
                 if path[0] in ['blocks', 'layout'] 
-                    value.dispatch = (t) -> t.res.send('foo World')
                     # collect routes
                     if value.routes
                         @routes[key] = arrayfy(value.routes)
@@ -169,35 +168,34 @@ module.exports = class Config
                 follower.depends = arrayfy(follower.depends)
                 follower.depends.push(name) if name not in follower.depends
         block
-
     getDispatchFunction: (block) ->
         @completeDependencyArrays(block)
         __dispatchInit = {prepares: []}
         getDispatchFunc = (action) ->
-            return (t) -> 
+            return (req) -> 
                 if action.prepares
                     for name in action.prepares
                         follower = block.actions[name]
-                        follower.isReady(t) if follower.isReady
+                        follower.isReady(req) if follower.isReady
                 else
                     __dispatchFinish.isReady(t)
         getIsReadyFunc = (action) ->
             action.countDone = 0
-            return (t) ->
+            return (req) ->
                 action.countDone++
                 if action.countDone is action.depends.length
                     if action.method
-                        action.method(t, () -> action.dispatch(t)) 
+                        action.method(req, block, {done: () -> action.dispatch(req)})
                     else
-                        action.dispatch(t)
+                        action.dispatch(req)
         for name, action of block.actions
-            unless action.depends?.length 
+            unless action.depends?.length
                 __dispatchInit.prepares.push(name)
                 action.depends = ['__dispatchInit']
             action.isReady = getIsReadyFunc(action)
             action.dispatch = getDispatchFunc(action)
         block.__dispatchInit = __dispatchInit
-        getDispatchFunc(__dispatchInit) 
+        getDispatchFunc(__dispatchInit)
 
     validateNumber: (value, message) ->
         throw new Error(message) if typeof value isnt 'number'

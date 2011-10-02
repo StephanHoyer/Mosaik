@@ -1,3 +1,4 @@
+merge = require('../util').merge
 should = require('should')
 Config = require('../config')
 should.throw = should.throws
@@ -360,7 +361,7 @@ module.exports = merge(module.exports,
 func = (() -> 
     rand = Math.random()
     return (req, block, action) -> 
-        t.result = block.data + rand
+        req.result = req.data + rand
         action.done();
 )()
 
@@ -378,11 +379,11 @@ module.exports = merge(module.exports,
         config.should.respondTo('attachDispatcher')
         config.attachDispatcher(config.config.blocks.route1)
         config.config.blocks.route1.should.respondTo('dispatch')
-        t1 = {data: 'foo'} 
-        t2 = {data: 'foo'} # @todo clone t1
-        config.config.blocks.route1.dispatch(t1)
-        func(t2, ()->null)
-        t1.result.should.eql(t2.result)
+        req1 = {data: 'foo'} 
+        req2 = {data: 'foo'} # @todo clone t1
+        config.config.blocks.route1.dispatch(req1)
+        func(req2, {}, {done: ()->null})
+        req1.result.should.eql(req2.result)
     ###
     'Short syntax of defining action should also be possible': () ->
         config = new Config()
