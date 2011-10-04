@@ -2,10 +2,11 @@
 # Simple Hello world app
 ################################################
 module.exports.config = 
-    childs:
+    blocks:
         'helloWorld':
             route: /.*/
-            method: () -> 'Hello World'
+            actions: 
+                'render': (req, block, action) -> block.send('Hello World')
 
 ###
 
@@ -20,83 +21,84 @@ route: helloWorld
 # Example with db interaction
 ################################################
 
-renderObject = (req, res) ->
-    req.object.renderWithTemplate(res.template)
+renderObject = (req, block, action) ->
+    block.renderWithTemplate(block.template, {'object': block.object})
 
-renderForm = (req, res) ->
+renderForm = (req, block, action) ->
     req.form.renderWithTemplate(res.template)
 
 ###
 # req: Request object
 #   req.route blockname of route which initially catched the request
-# res: Response object with some additional data
-#   res.forward(url/blockname) method to forward request
-#   res.redirect(url/blockname) method to redirect request
-# done(): method to finish this middleware and continue with next middleware
-# done(): method to stop rendering an continue with next matching route
+#   req.forward(url/blockname) method to forward request
+#   req.redirect(url/blockname) method to redirect request
+#   next(): method to stop rendering an continue with next matching route
+# action:
+#   done(): method to finish this action and continue with next action
 ###
-loadFromDb = (req, res, done, next) ->
+loadFromDb = (req, block, action) ->
     db.loadSomethigById(req.id, (err, something) ->
-        done() if err
-        req.object = something
-        done()
+        action.done() if err
+        block.object = something
+        action.done()
     )
 
 module.exports.config = 
     childs:
         'showSomeDbContent':
             route: '/.*/'
-            method: renderObject
             template: 'niceTemplate'
-            middlewares:
-                'loadFromDb':
-                    method: loadFromDb
+            actions:
+                'render': 
+                    method: renderObject
+                    depends: 'loadFromDb'
+                'loadFromDb': loadFromDb
 
 ###
 
 Dependency tree
 
 route: helloWorld
-    'RESPONSE'
-        'showSomeDbContent'
-            'loadFromDb'
+    'render'
+        'loadFromDb'
 
 ################################################
-# Example with middlewaredepencies
+# Example with depencies
 ################################################
 
-checkLoginState = (req, res, done, next) ->
-    done() if isAllowed(req.session.user)
+checkLoginState = (req, block, action) ->
+    action.done() if isAllowed(req.session.user)
     req.session.back = req.route
-    res.redirect('login')
-checkLogin = (req, res, done, next) ->
-    done() if req.type is 'GET'
+    req.redirect('login')
+checkLogin = (req, block, action) ->
+    action.done() if req.type is 'GET'
     db.checkUser(req.data.username, req.data.password, err, user) ->
-        done() if err
+        action.done() if err
         req.session.user = user
-        res.redirect(req.session.back)
+        req.redirect(req.session.back)
+        action.done()
 
 module.exports.config = 
-    childs:
+    blocks:
         'login':
             route: 'user/login'
             type: ['POST', 'GET']
-            method: renderForm
-            middlewares:
-                'checkLogin':
-                    method: checkLogin
+            actions:
+                'checkLogin': checkLogin
 
         'showSomeDbContentWhichRequiresLogin':
             route: /.*/
-            method: renderObject
             template: 'niceTemplate'
-            middlewares:
+            actions:
+                'render': 
+                    method: renderObject
+                    depends: 'loadFromDb'
                 'loadFromDb':
                     method: loadFromDb
-                    depends: 
-                        'checkLogin':
-                            method: checkLoginState
-                            depends: 'mosaik-session' # core module which sets session to req object
+                    depends: 'checkLogin'
+                'checkLogin':
+                    method: checkLoginState
+                    depends: 'mosaik-session' # core module which sets session to req object
 
 ###
 
