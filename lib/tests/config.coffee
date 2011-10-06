@@ -5,6 +5,8 @@ should.throw = should.throws
 
 config = new Config()
 
+nothingAction = (req, block, action) -> action.done()
+
 module.exports = merge(module.exports,
     'Config should have empty property config': () -> config.config.should.eql({})
     'Config should respond to validate': () -> config.should.respondTo('validate')
@@ -356,69 +358,93 @@ module.exports = merge(module.exports,
 # test attachment of dispatch function
 ###
 
-# func is a function that is returning the 
-# same random number every time called
-getFunc = (string) ->
-    return (req, block, action) ->
-        if req.result
-            req.result += string
-        else
-            req.result = req.data + string
-        action.done()
-
-func = getFunc(Math.random())
-func2 = getFunc(Math.random())
 
 module.exports = merge(module.exports,
     'Call of attachDispatcher should generate a method dispatch': () ->
         config = new Config()
         config.merge(
             blocks:
-                'route1':
+                'route':
                     actions:
-                        "render":
-                            method: func
+                        'bar': 
+                            method: nothingAction
         )
         config.should.respondTo('attachDispatcher')
-        config.attachDispatcher(config.config.blocks.route1)
-        config.config.blocks.route1.should.respondTo('dispatch')
-        req1 = {data: 'foo'}
-        req2 = {data: 'foo'} # @todo clone t1
-        config.config.blocks.route1.dispatch(req1)
-        func(req2, {}, {done: ()->null})
-        req1.result.should.eql(req2.result)
+        config.attachDispatcher(config.config.blocks.route)
+        config.config.blocks.route.should.respondTo('dispatch')
+        req = {}
+        config.config.blocks.route.dispatch(req)
+        req.should.have.property('actionCallStack')
+        req.actionCallStack.should.contain('bar')
 
     'Short syntax of defining action should also be possible': () ->
         config = new Config()
         config.merge(
             blocks: 
-                'route1':
+                'route':
                     actions: 
-                        "render": func 
+                        'bar': nothingAction
         )
-        config.attachDispatcher(config.config.blocks.route1)
-        req1 = {data: 'foo'} 
-        req2 = {data: 'foo'} # @todo clone t1
-        config.config.blocks.route1.dispatch(req1)
-        func(req2, {}, {done: ()->null})
-        req1.result.should.eql(req2.result)
+        config.attachDispatcher(config.config.blocks.route)
+        req = {} 
+        config.config.blocks.route.dispatch(req)
+        req.actionCallStack.should.contain('bar')
 
     'Multiple actions in block should all be called': () ->
         config = new Config()
         config.merge(
             blocks: 
-                'route1':
+                'route':
                     actions: 
-                        'render': func 
-                        'foo': func2
+                        'bar': () -> null
+                        'foo': () -> null
         )
-        config.attachDispatcher(config.config.blocks.route1)
-        req1 = {data: 'foo'} 
-        req2 = {data: 'foo'} # @todo clone t1
-        config.config.blocks.route1.dispatch(req1)
-        func(req2, {}, {done: ()->null})
-        func2(req2, {}, {done: ()->null})
-        req1.result.should.eql(req2.result)
+        config.attachDispatcher(config.config.blocks.route)
+        req = {} 
+        config.config.blocks.route.dispatch(req)
+        req.actionCallStack.should.contain('foo')
+        req.actionCallStack.should.contain('bar')
+        req.actionCallStack.should.not.contain('baz')
+
+    'Multiple actions in block should all be called in defined order': () ->
+        config = new Config()
+        config.merge(
+            blocks: 
+                'route':
+                    actions: 
+                        'bar': 
+                            method: nothingAction
+                        'foo':
+                            method: nothingAction
+                            depends: 'bar'
+        )
+        config.attachDispatcher(config.config.blocks.route)
+        req = {}
+        config.config.blocks.route.dispatch(req)
+        req.actionCallStack.should.contain('foo')
+        req.actionCallStack.should.contain('bar')
+        req.actionCallStack.should.eql(['bar', 'foo'])
+        req.actionCallStack.should.not.eql(['foo', 'bar'])
+
+    'Multiple dependencies should also work': () ->
+        config = new Config()
+        config.merge(
+            blocks: 
+                'route':
+                    actions: 
+                        'bar': 
+                            method: nothingAction
+                        'foo':
+                            method: nothingAction
+                            depends: 'bar'
+                        'baz':
+                            method: nothingAction
+                            depends: 'foo'
+        )
+        config.attachDispatcher(config.config.blocks.route)
+        req = {}
+        config.config.blocks.route.dispatch(req)
+        req.actionCallStack.should.eql(['bar', 'foo', 'baz'])
 )
 
 ###

@@ -165,7 +165,7 @@ module.exports = class Config
                 dependency.prepares = arrayfy(dependency.prepares) 
                 dependency.prepares.push(name) if name not in dependency.prepares
             for follower in func.prepares
-                follower = block[follower]
+                follower = block.actions[follower]
                 follower.depends = arrayfy(follower.depends)
                 follower.depends.push(name) if name not in follower.depends
         block
@@ -180,20 +180,22 @@ module.exports = class Config
                         follower.isReady(req) if follower.isReady
                 else
                     __dispatchFinish.isReady(t)
-        getIsReadyFunc = (action) ->
+        getIsReadyFunc = (action, name) ->
             action.countDone = 0
             return (req) ->
                 action.countDone++
                 if action.countDone is action.depends.length
+                    req.actionCallStack = [] unless req.actionCallStack
+                    req.actionCallStack.push(name)
                     if action.method
                         action.method(req, block, {done: () -> action.dispatch(req)})
                     else
                         action.dispatch(req)
         for name, action of block.actions
-            unless action.depends?.length and action.depends is ['__dispatchInit']
+            unless action.depends?.length
                 __dispatchInit.prepares.push(name)
                 action.depends = ['__dispatchInit']
-            action.isReady = getIsReadyFunc(action)
+            action.isReady = getIsReadyFunc(action, name)
             action.dispatch = getDispatchFunc(action)
         block.__dispatchInit = __dispatchInit
         getDispatchFunc(__dispatchInit)
