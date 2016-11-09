@@ -4,6 +4,6 @@
     "coffee-script" : "",
     "connect"       : "",
     "expresso"      : "",
-    "should"        : ""
+    "should"        : ">=11.1.1"
   }
 }
